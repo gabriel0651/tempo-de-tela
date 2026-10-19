@@ -1,0 +1,958 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2F4392">
+<link rel="icon" type="image/png" href="logo.png">
+<title>Tempo de Tela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: coluna única estilo app (até 460px). Splash azul da escola, depois painel:
+   entrada da média diária, resultado de 20 anos em destaque, seis períodos, simulação,
+   último registro e abas de dicas. Vermelho do logo só em detalhes. */
+:root {
+  --bg: #F3F5FB;
+  --surface: #FFFFFF;
+  --ink: #141A3C;
+  --muted: #586082;
+  --line: #E0E5F3;
+  --track: #D9DFF1;
+  --blue: #2F4392;
+  --blue-soft: #E7EBFA;
+  --btn-bg: #2F4392;
+  --btn-fg: #FFFFFF;
+  --hero-bg: #2F4392;
+  --coral: #FF5C66;
+  --ok: #14794F; --ok-soft: #DDF3EA;
+  --warn: #8F5700; --warn-soft: #FCEFD6;
+  --bad: #C42B3B; --bad-soft: #FBE2E5;
+  --bar-old: #AEB9E4;
+  --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Figtree', 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D1126; --surface: #161B3A; --ink: #EDEFFA; --muted: #A0A8CC;
+    --line: #283056; --track: #2A3260; --blue: #9DB0FF; --blue-soft: #222B5C;
+    --btn-bg: #9DB0FF; --btn-fg: #10173D; --hero-bg: #24347B;
+    --ok: #59D6A0; --ok-soft: #133A2D; --warn: #F2B955; --warn-soft: #3B2D10;
+    --bad: #FF8A96; --bad-soft: #40181E; --bar-old: #46538F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D1126; --surface: #161B3A; --ink: #EDEFFA; --muted: #A0A8CC;
+  --line: #283056; --track: #2A3260; --blue: #9DB0FF; --blue-soft: #222B5C;
+  --btn-bg: #9DB0FF; --btn-fg: #10173D; --hero-bg: #24347B;
+  --ok: #59D6A0; --ok-soft: #133A2D; --warn: #F2B955; --warn-soft: #3B2D10;
+  --bad: #FF8A96; --bad-soft: #40181E; --bar-old: #46538F;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-block: 18px calc(104px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, p, ul { margin: 0; }
+button { font-family: inherit; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+.app { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+
+/* Cabeçalho */
+.top { display: flex; align-items: center; gap: 12px; }
+.top img { width: 44px; height: 44px; border-radius: 17%; flex: none; }
+.top h1 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; line-height: 1.1; letter-spacing: -.01em; }
+.top span { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.theme-btn { margin-left: auto; flex: none; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.theme-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.1rem; line-height: 1.25; text-wrap: balance; }
+
+/* Entrada */
+.input { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px 18px 18px; display: flex; flex-direction: column; gap: 14px; }
+.readout { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.time { display: flex; align-items: baseline; gap: 4px; font-variant-numeric: tabular-nums; }
+.time b { font-family: var(--font-display); font-weight: 700; font-size: 2.6rem; line-height: 1; letter-spacing: -.02em; }
+.time small { font-size: .95rem; color: var(--muted); font-weight: 600; margin-right: 8px; }
+.chip { font-size: .8rem; font-weight: 700; padding: 5px 11px; border-radius: 99px; }
+.lvl-ok { background: var(--ok-soft); color: var(--ok); }
+.lvl-warn { background: var(--warn-soft); color: var(--warn); }
+.lvl-bad { background: var(--bad-soft); color: var(--bad); }
+.slider-row { display: flex; align-items: center; gap: 10px; }
+.step { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: 1.4rem; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.step:active { background: var(--blue-soft); }
+.ends { display: flex; justify-content: space-between; font-size: .78rem; color: var(--muted); padding: 0 54px; margin-top: -8px; }
+.primary { width: 100%; border: 0; border-radius: 14px; padding: 14px 16px; background: var(--btn-bg); color: var(--btn-fg); font-weight: 700; font-size: 1rem; cursor: pointer; }
+.primary:active { transform: scale(.985); }
+
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; min-width: 0; height: 28px; background: transparent; cursor: pointer; margin: 0; --p: 0%; }
+input[type=range]::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--blue) var(--p), var(--track) var(--p)); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; box-sizing: border-box; width: 26px; height: 26px; margin-top: -9px; border-radius: 50%; background: var(--surface); border: 5px solid var(--blue); box-shadow: 0 2px 6px rgba(10, 16, 50, .25); }
+input[type=range]::-moz-range-track { height: 8px; border-radius: 4px; background: var(--track); }
+input[type=range]::-moz-range-progress { height: 8px; border-radius: 4px; background: var(--blue); }
+input[type=range]::-moz-range-thumb { box-sizing: border-box; width: 26px; height: 26px; border-radius: 50%; background: var(--surface); border: 5px solid var(--blue); }
+
+/* Resultado em destaque */
+.hero { background: var(--hero-bg); color: #fff; border-radius: 22px; padding: 22px 20px 20px; display: flex; flex-direction: column; gap: 10px; }
+.eyebrow { font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; opacity: .8; }
+.big { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.1rem, 9.5vw, 2.9rem); line-height: 1.05; letter-spacing: -.015em; text-wrap: balance; }
+.hero p { opacity: .94; }
+.daybar { --p: 25%; position: relative; height: 16px; border-radius: 8px; overflow: hidden; margin-top: 6px; background: linear-gradient(90deg, var(--coral) var(--p), rgba(255, 255, 255, .2) var(--p)); }
+.daybar::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0, transparent calc(6.25% - 2px), var(--hero-bg) calc(6.25% - 2px), var(--hero-bg) 6.25%); }
+.barlegend { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; opacity: .85; }
+.barnote { font-size: .75rem; opacity: .7; }
+
+/* Períodos */
+.block { display: flex; flex-direction: column; gap: 12px; }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tile .k { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.tile .v { font-family: var(--font-display); font-weight: 700; font-size: 1.9rem; line-height: 1.15; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.tile .v small { font-family: var(--font-body); font-size: .9rem; font-weight: 600; color: var(--muted); margin-left: 4px; letter-spacing: 0; }
+.tile .s { font-size: .8rem; color: var(--muted); }
+
+/* Simulação */
+.sim { background: var(--blue-soft); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.simhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-weight: 600; }
+.simhead output { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.gain { font-size: 1rem; }
+.gain b { font-family: var(--font-display); font-size: 1.7rem; color: var(--ok); letter-spacing: -.01em; margin-right: 4px; }
+.simsub { color: var(--muted); font-size: .9rem; }
+
+/* Último registro */
+.rec { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+.rec-main { font-size: .95rem; color: var(--muted); }
+.rec-main b { font-family: var(--font-display); font-size: 1.5rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+.rec-meta { font-size: .82rem; color: var(--muted); }
+.rec-cmp { margin-top: 6px; font-weight: 600; }
+.rec-empty { color: var(--muted); }
+
+/* Telas e navegação */
+.view { display: flex; flex-direction: column; gap: 22px; }
+.view-title { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; line-height: 1.15; letter-spacing: -.015em; text-wrap: balance; }
+.lead { color: var(--muted); font-size: 1rem; max-width: 60ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 4px 18px; }
+.tiplist { list-style: none; padding: 0; }
+.tiplist li { padding: 14px 0; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+.tiplist li:last-child { border-bottom: 0; }
+.ghost { align-self: flex-start; border: 1px solid var(--line); background: var(--surface); color: var(--blue); border-radius: 12px; padding: 12px 16px; font-weight: 700; font-size: .95rem; cursor: pointer; }
+
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: center; padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+.nav-inner { width: 100%; max-width: 460px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
+.nav button { border: 0; background: transparent; color: var(--muted); border-radius: 12px; padding: 7px 2px 6px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: .7rem; font-weight: 600; cursor: pointer; min-width: 0; }
+.nav button svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav button[aria-current="page"] { color: var(--blue); background: var(--blue-soft); }
+
+/* Equipe */
+.team-card { background: var(--hero-bg); color: #fff; border-radius: 22px; padding: 22px 20px; display: flex; align-items: center; gap: 16px; }
+.team-card img { width: 64px; height: 64px; border-radius: 17%; flex: none; }
+.team-card strong { display: block; font-family: var(--font-display); font-size: 1.3rem; line-height: 1.2; }
+.team-card span { opacity: .85; font-size: .92rem; }
+.people { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.people li { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; min-width: 0; }
+.avatar { flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--blue-soft); color: var(--blue); display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; letter-spacing: .02em; }
+.people li:nth-child(even) .avatar { background: var(--bad-soft); color: var(--bad); }
+.people b { font-weight: 600; font-size: 1.02rem; min-width: 0; }
+.tiplist { list-style: none; padding: 0; }
+.tiplist li { padding: 12px 2px; border-bottom: 1px solid var(--line); }
+.tiplist li:last-child { border-bottom: 0; }
+.tiplist strong { display: block; font-weight: 700; }
+.tiplist span { color: var(--muted); font-size: .92rem; }
+
+.foot { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+
+/* Evolução */
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--blue-soft); padding: 4px; border-radius: 12px; }
+.seg button { border: 0; background: transparent; color: var(--muted); padding: 10px 8px; border-radius: 9px; font-weight: 600; font-size: .92rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(10, 16, 50, .15); }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lbl { font-size: .75rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+input[type=date] { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-height: 46px; width: 100%; min-width: 0; }
+.photo-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.thumb { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line); display: block; }
+.prev { display: flex; align-items: center; gap: 6px; }
+.linkbtn { border: 0; background: none; color: var(--bad); font-weight: 700; font-size: .9rem; cursor: pointer; padding: 8px; font-family: inherit; }
+.hint { font-size: .85rem; color: var(--muted); }
+.rem-msg { font-size: 1.05rem; font-weight: 600; line-height: 1.35; }
+.cmp { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.cmp-big { font-family: var(--font-display); font-weight: 700; font-size: 1.45rem; line-height: 1.2; letter-spacing: -.01em; text-wrap: balance; }
+.cmp-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.cmp-col { background: var(--bg); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cmp-col .k { font-size: .72rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.cmp-col .v { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.cmp-col .s { font-size: .8rem; color: var(--muted); }
+.chip-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.chart { display: flex; align-items: stretch; gap: 6px; height: 180px; border-bottom: 1px solid var(--line); }
+.col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.barwrap { flex: 1; position: relative; }
+.bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; width: 100%; max-width: 34px; border-radius: 4px 4px 0 0; background: var(--bar-old); }
+.col.now .bar { background: var(--blue); }
+.val { position: absolute; left: 0; right: 0; text-align: center; font-size: .68rem; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dts { display: flex; gap: 6px; }
+.dts span { flex: 1; min-width: 0; text-align: center; font-size: .66rem; color: var(--muted); white-space: nowrap; overflow: hidden; }
+.hist { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.hist li { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; min-width: 0; }
+.hist .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.hist .when { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.hist .amt { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.hist .dl { font-size: .82rem; font-weight: 600; color: var(--muted); }
+.thumbbtn { border: 0; padding: 0; background: none; cursor: pointer; border-radius: 12px; flex: none; }
+.thumbbtn .thumb { width: 48px; height: 48px; }
+.d-ok { color: var(--ok) !important; }
+.d-bad { color: var(--bad) !important; }
+.lightbox { position: fixed; inset: 0; z-index: 60; background: rgba(5, 8, 30, .88); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.lightbox img { max-width: 100%; max-height: 78vh; border-radius: 12px; }
+.lightbox .ghost { align-self: center; }
+
+/* Toast */
+.toast { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 max(16px, env(safe-area-inset-right, 0px)) calc(90px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: flex; justify-content: center; pointer-events: none; z-index: 20; }
+.toast span { background: var(--ink); color: var(--bg); padding: 11px 16px; border-radius: 12px; font-weight: 600; font-size: .9rem; max-width: 460px; box-shadow: 0 6px 20px rgba(10, 16, 50, .3); }
+
+/* Splash */
+.splash { position: fixed; inset: 0; z-index: 50; background: var(--hero-bg); color: #fff; display: grid; place-items: center; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); transition: opacity .45s ease; }
+.splash.out { opacity: 0; pointer-events: none; }
+.splash-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; text-align: center; }
+.splash-logo { width: 132px; height: 132px; border-radius: 17%; box-shadow: 0 14px 36px rgba(5, 10, 40, .35); margin-bottom: 10px; }
+.splash-name { font-family: var(--font-display); font-weight: 700; font-size: 1.7rem; letter-spacing: -.01em; }
+.splash-tag { opacity: .85; max-width: 24ch; }
+.spin { width: 48px; height: 48px; margin-top: 4px; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes rise { from { opacity: .35; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.pop { animation: rise .45s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .pop { animation: none; }
+  .splash { transition: none; }
+  .spin { animation-duration: 3s; }
+  .primary:active { transform: none; }
+}
+body { margin: 0; }
+img { max-width: 100%; }
+</style>
+</head>
+<body>
+
+<div id="splash" class="splash" role="status" aria-label="Carregando o aplicativo">
+  <div class="splash-inner">
+    <img id="splashLogo" class="splash-logo" src="logo.png" alt="Logo do IMMC" width="132" height="132">
+    <svg class="spin" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="#FF5C66" stroke-width="5" stroke-linecap="round" stroke-dasharray="92 200"/></svg>
+    <div class="splash-name">Tempo de Tela</div>
+    <p class="splash-tag">Veja quanto da sua vida vai para o celular</p>
+  </div>
+</div>
+
+<main id="app" class="app">
+  <header class="top">
+    <img id="headLogo" alt="Logo do IMMC" width="44" height="44">
+    <div>
+      <h1>Tempo de Tela</h1>
+      <span>IMMC</span>
+    </div>
+    <button type="button" class="theme-btn" id="themeBtn"></button>
+  </header>
+
+  <div class="view" id="v-calc">
+  <section class="input" aria-labelledby="qInput">
+    <h2 id="qInput">Quanto você usa o celular por dia, em média?</h2>
+    <div class="readout">
+      <div class="time" id="timeText"></div>
+      <span class="chip" id="chip"></span>
+    </div>
+    <div class="slider-row">
+      <button class="step" id="minus" type="button" aria-label="Diminuir 15 minutos">&minus;</button>
+      <input id="range" type="range" min="0.25" max="16" step="0.25" value="4" aria-label="Média diária de uso do celular">
+      <button class="step" id="plus" type="button" aria-label="Aumentar 15 minutos">+</button>
+    </div>
+    <div class="ends"><span>15 min</span><span>16 h</span></div>
+    <button class="primary" id="calc" type="button">Calcular e salvar</button>
+  </section>
+
+  <section id="results" class="block" aria-label="Resultado">
+    <div class="hero" id="hero">
+      <div class="eyebrow">Em 20 anos você passa</div>
+      <div class="big" id="heroBig">3 anos e 4 meses</div>
+      <p id="heroText">olhando para a tela do celular. Isso é 25% do tempo em que você está acordado.</p>
+      <div class="daybar" id="dayBar" role="img" aria-label="Parte do dia acordado usada no celular"></div>
+      <div class="barlegend"><span>Celular: <b id="barUse">4 h</b></span><span>16 h acordado</span></div>
+      <div class="barnote">Cada pedaço da barra é 1 hora do seu dia.</div>
+    </div>
+
+    <h2>Quanto dá em cada período</h2>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="block" aria-labelledby="qSim">
+    <h2 id="qSim">E se você usasse menos?</h2>
+    <div class="sim">
+      <div class="simhead"><label for="cut">Usar menos</label><output id="cutText" for="cut">1 h por dia</output></div>
+      <input id="cut" type="range" min="0.25" max="4" step="0.25" value="1" aria-label="Quanto reduzir por dia">
+      <p class="gain"><b id="gainBig">10 meses</b> de volta em 20 anos</p>
+      <p class="simsub" id="gainSub"></p>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="qRec">
+    <h2 id="qRec">Último registro</h2>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <p class="foot">Cálculo: média diária multiplicada pelos dias de cada período, com ano de 365 dias e 16 h acordado por dia. Os níveis de uso são uma referência do app, não um diagnóstico.</p>
+  </div>
+
+  <div class="view" id="v-evo" hidden>
+    <h2 class="view-title">Sua evolução</h2>
+    <p class="lead">Registre sua média diária toda semana ou todo mês. O app guarda cada registro e compara com o anterior.</p>
+
+    <section class="input" aria-labelledby="qEv">
+      <h2 id="qEv">Novo registro</h2>
+      <div class="seg" role="group" aria-label="Período do registro">
+        <button type="button" id="segSem" aria-pressed="true">Semana</button>
+        <button type="button" id="segMes" aria-pressed="false">Mês</button>
+      </div>
+      <div class="field">
+        <label class="lbl" for="evDate">Data do registro</label>
+        <input id="evDate" type="date">
+      </div>
+      <div class="field">
+        <span class="lbl" id="evLabel">Média diária da semana</span>
+        <div class="readout">
+          <div class="time" id="evTime"></div>
+          <span class="chip" id="evChip"></span>
+        </div>
+      </div>
+      <div class="slider-row">
+        <button class="step" id="evMinus" type="button" aria-label="Diminuir 15 minutos">&minus;</button>
+        <input id="evRange" type="range" min="0.25" max="16" step="0.25" value="4" aria-labelledby="evLabel">
+        <button class="step" id="evPlus" type="button" aria-label="Aumentar 15 minutos">+</button>
+      </div>
+      <div class="ends"><span>15 min</span><span>16 h</span></div>
+      <div class="field">
+        <span class="lbl">Foto do tempo de tela (opcional)</span>
+        <div class="photo-row">
+          <button type="button" class="ghost" id="evAdd">Adicionar foto</button>
+          <span class="prev" id="evPrev" hidden>
+            <img id="evThumb" class="thumb" alt="Foto anexada ao registro">
+            <button type="button" class="linkbtn" id="evRm">Remover</button>
+          </span>
+        </div>
+        <input id="evFile" type="file" accept="image/*" hidden>
+        <p class="hint">Tire um print da tela de Tempo de Uso (iPhone) ou Bem-estar Digital (Android) e anexe aqui. A foto fica guardada com o registro. O número você coloca acima.</p>
+      </div>
+      <button class="primary" id="evSave" type="button">Salvar registro</button>
+    </section>
+
+    <section class="block" aria-labelledby="qCmp">
+      <h2 id="qCmp">Comparação com o registro anterior</h2>
+      <div class="cmp" id="evCmp"></div>
+    </section>
+
+    <section class="block" aria-labelledby="qRem" id="evRemBlock" hidden>
+      <h2 id="qRem">Lembrete</h2>
+      <div class="cmp" id="evRem"></div>
+    </section>
+
+    <section class="block" aria-labelledby="qChart" id="evChartBlock">
+      <h2 id="qChart">Média diária ao longo do tempo</h2>
+      <div class="cmp" id="evChart"></div>
+    </section>
+
+    <section class="block" aria-labelledby="qHist" id="evHistBlock">
+      <h2 id="qHist">Histórico</h2>
+      <ul class="hist" id="evHist"></ul>
+    </section>
+  </div>
+
+  <div class="view" id="v-eff" hidden>
+    <h2 class="view-title">O que o uso excessivo do celular causa</h2>
+    <p class="lead">Usar o celular não é o problema. O peso vem das horas que se somam todos os dias.</p>
+    <div class="panel">
+      <ul class="tiplist">
+        <li><strong>Sono pior</strong><span>A luz da tela e o conteúdo sem fim atrasam a hora de dormir e deixam o sono mais leve.</span></li>
+        <li><strong>Vista cansada</strong><span>Piscamos menos olhando para a tela. Os olhos ressecam e a dor de cabeça aparece.</span></li>
+        <li><strong>Pescoço e costas</strong><span>Horas com a cabeça baixa sobrecarregam pescoço, ombros e coluna.</span></li>
+        <li><strong>Menos concentração</strong><span>Cada notificação corta o raciocínio, e voltar ao estudo depois dela leva tempo.</span></li>
+        <li><strong>Humor e ansiedade</strong><span>Muito tempo em redes sociais está ligado a mais ansiedade e a se comparar com os outros.</span></li>
+        <li><strong>Menos tempo para o resto</strong><span>Cada hora na tela é uma hora a menos para esporte, amigos, família e estudo.</span></li>
+      </ul>
+    </div>
+    <button class="ghost" type="button" data-go="tip">Ver como usar menos</button>
+  </div>
+
+  <div class="view" id="v-tip" hidden>
+    <h2 class="view-title">Como usar o celular com equilíbrio</h2>
+    <p class="lead">Não precisa largar de vez. Escolha uma ou duas mudanças e veja quanto tempo volta para você.</p>
+    <div class="panel">
+      <ul class="tiplist">
+        <li><strong>Desligue notificações</strong><span>Deixe só as de pessoas. Avisos de jogos e promoções podem ficar mudos.</span></li>
+        <li><strong>Carregue fora do quarto</strong><span>Sem o celular na cama, fica mais fácil dormir cedo e acordar sem rolar a tela.</span></li>
+        <li><strong>Uma hora sem tela antes de dormir</strong><span>Troque por leitura, banho ou conversa.</span></li>
+        <li><strong>Use o limite do próprio celular</strong><span>No iPhone, Tempo de Uso. No Android, Bem-estar Digital. Ali dá para definir um tempo máximo por app.</span></li>
+        <li><strong>Esconda as redes sociais</strong><span>Tire os apps da primeira tela. Se der trabalho para abrir, você abre menos.</span></li>
+        <li><strong>Celular em outra sala ao estudar</strong><span>Só de ficar à vista, ele já puxa a atenção.</span></li>
+      </ul>
+    </div>
+    <button class="ghost" type="button" data-go="calc">Simular quanto tempo eu ganho</button>
+  </div>
+
+  <div class="view" id="v-team" hidden>
+    <h2 class="view-title">Criadores</h2>
+    <div class="team-card">
+      <img id="teamLogo" alt="Logo do IMMC" width="64" height="64">
+      <div><strong>Tempo de Tela</strong><span>Projeto escolar do IMMC, 2026</span></div>
+    </div>
+    <ul class="people" id="people"></ul>
+  </div>
+</main>
+
+<nav class="nav" aria-label="Seções do app">
+  <div class="nav-inner">
+    <button type="button" data-go="calc" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Calcular</button>
+    <button type="button" data-go="evo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Evolução</button>
+    <button type="button" data-go="eff"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-4 4 8 2-4h6"/></svg>Efeitos</button>
+    <button type="button" data-go="tip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>Dicas</button>
+    <button type="button" data-go="team"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg>Criadores</button>
+  </div>
+</nav>
+
+<div class="toast" aria-live="polite"><span id="toastText" hidden></span></div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-label="Foto do registro" hidden>
+  <img id="lbImg" alt="Foto do tempo de tela do registro">
+  <button type="button" class="ghost" id="lbClose">Fechar</button>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY = 'tempo-de-tela-ultimo';
+  var DAYS20 = 7300;
+  var nf0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
+  var nf1 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+  var PERIODS = [
+    { k: 'Em 1 semana', d: 7 }, { k: 'Em 1 mês', d: 30 }, { k: 'Em 1 ano', d: 365 },
+    { k: 'Em 5 anos', d: 1825 }, { k: 'Em 10 anos', d: 3650 }, { k: 'Em 20 anos', d: DAYS20 }
+  ];
+
+  var hours = 4, cut = 1, saved = null;
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) {
+      var o = JSON.parse(raw);
+      if (o && typeof o.h === 'number' && o.h >= 0.25 && o.h <= 16) { saved = o; hours = o.h; }
+    }
+  } catch (e) {}
+
+  function pl(n, s, p) { return Math.abs(n - 1) < 1e-9 ? s : p; }
+
+  /* hh e mm em texto: "1 h 15 min", "30 min", "2 h" */
+  function hm(h) {
+    var t = Math.round(h * 60), hh = Math.floor(t / 60), mm = t % 60;
+    if (!hh) return mm + ' min';
+    if (!mm) return hh + ' h';
+    return hh + ' h ' + String(mm).padStart(2, '0') + ' min';
+  }
+
+  /* dias em "3 anos e 4 meses" */
+  function ym(days) {
+    var y = Math.floor(days / 365);
+    var m = Math.round((days - y * 365) / 30.44);
+    if (m >= 12) { y += 1; m = 0; }
+    var parts = [];
+    if (y) parts.push(y + ' ' + pl(y, 'ano', 'anos'));
+    if (m) parts.push(m + ' ' + pl(m, 'mês', 'meses'));
+    if (!parts.length) {
+      var d = Math.max(1, Math.round(days));
+      return d + ' ' + pl(d, 'dia', 'dias');
+    }
+    return parts.join(' e ');
+  }
+
+  /* total de horas em valor curto para os cartões */
+  function compact(totalH) {
+    var days = totalH / 24, v, u, sub;
+    if (totalH < 48) {
+      v = nf0.format(Math.round(totalH)); u = 'h';
+      sub = days < 1 ? 'menos de 1 dia' : 'equivale a ' + nf1.format(days) + ' ' + pl(days, 'dia', 'dias');
+    } else {
+      if (days < 100) {
+        var d = days < 10 ? Math.round(days * 10) / 10 : Math.round(days);
+        v = nf1.format(d); u = pl(d, 'dia', 'dias');
+      } else if (days < 365) {
+        var m = Math.round(days / 30.44 * 10) / 10;
+        v = nf1.format(m); u = pl(m, 'mês', 'meses');
+      } else {
+        var y = Math.round(days / 365 * 10) / 10;
+        v = nf1.format(y); u = pl(y, 'ano', 'anos');
+      }
+      sub = nf0.format(Math.round(totalH)) + ' h no total';
+    }
+    return { v: v, u: u, sub: sub };
+  }
+
+  function level(h) {
+    if (h <= 2) return { t: 'Uso leve', c: 'lvl-ok' };
+    if (h <= 4) return { t: 'Uso moderado', c: 'lvl-warn' };
+    return { t: 'Uso alto', c: 'lvl-bad' };
+  }
+
+  function setFill(el, value, min, max) {
+    el.style.setProperty('--p', ((value - min) / (max - min) * 100) + '%');
+  }
+
+  var range = $('range'), cutEl = $('cut');
+
+  function render() {
+    hours = Math.round(Math.min(16, Math.max(0.25, hours)) * 4) / 4;
+    range.value = hours;
+    setFill(range, hours, 0.25, 16);
+    range.setAttribute('aria-valuetext', hm(hours) + ' por dia');
+
+    var t = Math.round(hours * 60), hh = Math.floor(t / 60), mm = t % 60;
+    $('timeText').innerHTML = '<b>' + hh + '</b><small>h</small><b>' + String(mm).padStart(2, '0') + '</b><small>min</small>';
+    var lv = level(hours);
+    $('chip').textContent = lv.t;
+    $('chip').className = 'chip ' + lv.c;
+
+    var pct = Math.round(hours / 16 * 100);
+    $('heroBig').textContent = ym(hours * DAYS20 / 24);
+    $('heroText').textContent = 'olhando para a tela do celular. Isso é ' + pct + '% do tempo em que você está acordado.';
+    $('dayBar').style.setProperty('--p', (hours / 16 * 100) + '%');
+    $('barUse').textContent = hm(hours);
+
+    $('tiles').innerHTML = PERIODS.map(function (p) {
+      var c = compact(hours * p.d);
+      return '<div class="tile"><span class="k">' + p.k + '</span><span class="v">' + c.v + '<small>' + c.u + '</small></span><span class="s">' + c.sub + '</span></div>';
+    }).join('');
+
+    /* simulação */
+    var max = Math.max(0.25, Math.min(hours, 8));
+    cutEl.max = max;
+    cut = Math.round(Math.min(cut, max) * 4) / 4;
+    cutEl.value = cut;
+    setFill(cutEl, cut, 0.25, max === 0.25 ? 0.26 : max);
+    $('cutText').textContent = hm(cut) + ' por dia';
+    $('gainBig').textContent = ym(cut * DAYS20 / 24);
+    var perYear = cut * 365 / 24;
+    var left = hours - cut;
+    var before = ym(hours * DAYS20 / 24);
+    var after = left <= 0.001 ? 'zero' : ym(left * DAYS20 / 24);
+    $('gainSub').textContent = 'São ' + (perYear < 10 ? nf1.format(perYear) : nf0.format(Math.round(perYear))) + ' dias a cada ano. Seu total em 20 anos cairia de ' + before + ' para ' + after + '.';
+
+    renderRec();
+  }
+
+  function compareText(diff) {
+    if (Math.abs(diff) < 0.01) return 'Igual ao valor que está no controle acima.';
+    return hm(Math.abs(diff)) + (diff < 0 ? ' a menos' : ' a mais') + ' por dia no controle acima do que naquele registro.';
+  }
+
+  function renderRec() {
+    var el = $('rec');
+    if (!saved) {
+      el.innerHTML = '<p class="rec-empty">Nenhum registro ainda. Quando você tocar em Calcular e salvar, a média de hoje fica guardada aqui para comparar na próxima vez.</p>';
+      return;
+    }
+    var when = '';
+    try { when = new Date(saved.t).toLocaleString('pt-BR', { dateStyle: 'long', timeStyle: 'short' }); } catch (e) {}
+    el.innerHTML =
+      '<p class="rec-main"><b>' + hm(saved.h) + '</b> por dia</p>' +
+      (when ? '<p class="rec-meta">Salvo em ' + when + '</p>' : '') +
+      '<p>Naquele registro, 20 anos davam ' + ym(saved.h * DAYS20 / 24) + ' de tela.</p>' +
+      '<p class="rec-cmp">' + compareText(hours - saved.h) + '</p>';
+  }
+
+  var toastTimer;
+  function toast(msg) {
+    var el = $('toastText');
+    el.textContent = msg; el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.hidden = true; }, 2800);
+  }
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  range.addEventListener('input', function () { hours = Number(range.value); render(); });
+  cutEl.addEventListener('input', function () { cut = Number(cutEl.value); render(); });
+  $('minus').addEventListener('click', function () { hours -= 0.25; render(); });
+  $('plus').addEventListener('click', function () { hours += 0.25; render(); });
+
+  $('calc').addEventListener('click', function () {
+    var prev = saved;
+    saved = { h: hours, t: new Date().toISOString() };
+    try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+    render();
+    var hero = $('hero');
+    hero.classList.remove('pop'); void hero.offsetWidth; hero.classList.add('pop');
+    try { hero.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); } catch (e) {}
+    var msg = 'Registro salvo.';
+    if (prev) {
+      var d = hours - prev.h;
+      if (Math.abs(d) >= 0.01) msg += ' ' + hm(Math.abs(d)) + (d < 0 ? ' a menos' : ' a mais') + ' por dia que o anterior.';
+    }
+    toast(msg);
+  });
+
+  /* criadores */
+  var TEAM = ['Gabriel Nascimento de Oliveira', 'Giovana Carvalho', 'Mariana Campos Borges', 'Emanuelly Nogueira Hussein', 'José Neto'];
+  $('people').innerHTML = TEAM.map(function (n) {
+    var w = n.split(' ');
+    var ini = (w[0][0] + w[w.length - 1][0]).toUpperCase();
+    return '<li><span class="avatar" aria-hidden="true">' + ini + '</span><b>' + n + '</b></li>';
+  }).join('');
+
+  /* ---------- evolução ---------- */
+  var EKEY = 'tempo-de-tela-evolucao';
+  var PHOTO_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
+  var records = [];
+  try {
+    var rr = JSON.parse(localStorage.getItem(EKEY) || '[]');
+    if (Array.isArray(rr)) records = rr.filter(function (r) {
+      return r && typeof r.h === 'number' && r.h > 0 && r.h <= 24 && /^\d{4}-\d{2}-\d{2}$/.test(r.d);
+    });
+  } catch (e) {}
+
+  var evHours = hours, evTipo = 'semana', evFoto = null, evTouched = false, confirmId = null, confirmTimer;
+  var evRange = $('evRange'), evDate = $('evDate');
+
+  function todayStr() {
+    var n = new Date();
+    return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+  }
+  function dparse(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function dshort(s) { try { return dparse(s).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', '').replace(' de ', ' '); } catch (e) { return s; } }
+  function dlong(s) { try { return dparse(s).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return s; } }
+  function hc(h) {
+    var t = Math.round(h * 60), hh = Math.floor(t / 60), mm = t % 60;
+    if (!hh) return mm + 'min';
+    return mm ? hh + 'h' + String(mm).padStart(2, '0') : hh + 'h';
+  }
+  function tipoTxt(t) { return t === 'mes' ? 'Mês' : 'Semana'; }
+  function sorted() {
+    return records.slice().sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : a.id - b.id; });
+  }
+  function persist() {
+    try { localStorage.setItem(EKEY, JSON.stringify(records)); return true; } catch (e) { return false; }
+  }
+  function deltaInfo(diff) {
+    if (diff < -0.01) return { t: '↓ ' + hm(-diff) + ' a menos por dia', c: 'd-ok', chip: 'Melhorou', cc: 'lvl-ok' };
+    if (diff > 0.01) return { t: '↑ ' + hm(diff) + ' a mais por dia', c: 'd-bad', chip: 'Piorou', cc: 'lvl-bad' };
+    return { t: 'Igual ao anterior', c: '', chip: 'Igual', cc: 'lvl-warn' };
+  }
+
+  function renderEvForm() {
+    evHours = Math.round(Math.min(16, Math.max(0.25, evHours)) * 4) / 4;
+    evRange.value = evHours;
+    setFill(evRange, evHours, 0.25, 16);
+    evRange.setAttribute('aria-valuetext', hm(evHours) + ' por dia');
+    var t = Math.round(evHours * 60), hh = Math.floor(t / 60), mm = t % 60;
+    $('evTime').innerHTML = '<b>' + hh + '</b><small>h</small><b>' + String(mm).padStart(2, '0') + '</b><small>min</small>';
+    var lv = level(evHours);
+    $('evChip').textContent = lv.t;
+    $('evChip').className = 'chip ' + lv.c;
+    $('segSem').setAttribute('aria-pressed', String(evTipo === 'semana'));
+    $('segMes').setAttribute('aria-pressed', String(evTipo === 'mes'));
+    $('evLabel').textContent = evTipo === 'semana' ? 'Média diária da semana' : 'Média diária do mês';
+    if (evFoto) { $('evThumb').src = evFoto; $('evPrev').hidden = false; $('evAdd').textContent = 'Trocar foto'; }
+    else { $('evPrev').hidden = true; $('evThumb').removeAttribute('src'); $('evAdd').textContent = 'Adicionar foto'; }
+  }
+
+  function renderEvo() {
+    var arr = sorted(), n = arr.length, el = $('evCmp');
+
+    /* comparação */
+    if (!n) {
+      el.innerHTML = '<p class="hint">Nenhum registro ainda. Preencha o formulário acima e toque em Salvar registro. Repita toda semana para ver se o seu uso está caindo.</p>';
+    } else if (n === 1) {
+      el.innerHTML = '<p class="cmp-big">Primeiro registro salvo</p>' +
+        '<p class="hint">' + hm(arr[0].h) + ' por dia em ' + dlong(arr[0].d) + '. No próximo registro, a comparação aparece aqui.</p>';
+    } else {
+      var a = arr[n - 1], b = arr[n - 2], diff = a.h - b.h, di = deltaInfo(diff);
+      var pct = Math.round(Math.abs(diff) / b.h * 100);
+      var big = diff < -0.01 ? 'Você usou ' + hm(-diff) + ' a menos por dia'
+        : diff > 0.01 ? 'Você usou ' + hm(diff) + ' a mais por dia'
+        : 'Mesmo uso do registro anterior';
+      var html = '<div class="chip-row"><span class="chip ' + di.cc + '">' + di.chip + '</span>' +
+        (pct && Math.abs(diff) > 0.01 ? '<span class="hint">' + (diff < 0 ? 'queda' : 'alta') + ' de ' + pct + '%</span>' : '') + '</div>' +
+        '<p class="cmp-big">' + big + '</p>' +
+        '<div class="cmp-cols">' +
+          '<div class="cmp-col"><span class="k">Anterior</span><span class="v">' + hm(b.h) + '</span><span class="s">' + tipoTxt(b.tipo) + ', ' + dshort(b.d) + '</span></div>' +
+          '<div class="cmp-col"><span class="k">Atual</span><span class="v ' + di.c + '">' + hm(a.h) + '</span><span class="s">' + tipoTxt(a.tipo) + ', ' + dshort(a.d) + '</span></div>' +
+        '</div>' +
+        '<p class="hint">Nesse ritmo, 20 anos dão ' + ym(a.h * DAYS20 / 24) + ' de tela. No registro anterior eram ' + ym(b.h * DAYS20 / 24) + '.</p>';
+      if (n >= 3) {
+        var f = arr[0], d0 = a.h - f.h;
+        html += '<p class="hint">Desde o primeiro registro (' + dshort(f.d) + '): <b class="' + deltaInfo(d0).c + '">' +
+          (Math.abs(d0) <= 0.01 ? 'mesmo uso' : hm(Math.abs(d0)) + (d0 < 0 ? ' a menos' : ' a mais') + ' por dia') + '</b>.</p>';
+      }
+      el.innerHTML = html;
+    }
+
+    /* gráfico */
+    $('evChartBlock').hidden = n === 0;
+    if (n) {
+      var last = arr.slice(-12), max = 0;
+      last.forEach(function (r) { if (r.h > max) max = r.h; });
+      var cols = last.map(function (r, i) {
+        var p = Math.max(2, r.h / max * 84);
+        return '<div class="col' + (i === last.length - 1 ? ' now' : '') + '" title="' + tipoTxt(r.tipo) + ', ' + dlong(r.d) + ': ' + hm(r.h) + ' por dia">' +
+          '<div class="barwrap"><span class="val" style="bottom:calc(' + p + '% + 3px)">' + hc(r.h) + '</span><i class="bar" style="height:' + p + '%"></i></div></div>';
+      }).join('');
+      var dts = last.map(function (r) { return '<span>' + dshort(r.d) + '</span>'; }).join('');
+      var label = 'Média diária nos últimos ' + last.length + ' registros: ' + last.map(function (r) { return dshort(r.d) + ' ' + hm(r.h); }).join(', ');
+      $('evChart').innerHTML = '<div class="chart" role="img" aria-label="' + label + '">' + cols + '</div><div class="dts" aria-hidden="true">' + dts + '</div>' +
+        '<p class="hint">A barra escura é o registro mais recente. Quanto mais baixa, menos tempo de tela.' + (n > 12 ? ' Mostrando os 12 últimos.' : '') + '</p>';
+    }
+
+    /* histórico */
+    $('evHistBlock').hidden = n === 0;
+    $('evHist').innerHTML = arr.map(function (r, i) {
+      var prev = i > 0 ? arr[i - 1] : null;
+      var di = prev ? deltaInfo(r.h - prev.h) : null;
+      var photo = r.f && PHOTO_RE.test(r.f)
+        ? '<button type="button" class="thumbbtn" data-act="open" data-id="' + r.id + '" aria-label="Ver foto do registro de ' + dlong(r.d) + '"><img class="thumb" src="' + r.f + '" alt=""></button>' : '';
+      return '<li>' + photo +
+        '<div class="info"><span class="when">' + tipoTxt(r.tipo) + ', ' + dlong(r.d) + '</span>' +
+        '<span class="amt">' + hm(r.h) + ' por dia</span>' +
+        '<span class="dl ' + (di ? di.c : '') + '">' + (di ? di.t : 'Primeiro registro') + '</span></div>' +
+        '<button type="button" class="linkbtn" data-act="del" data-id="' + r.id + '">' + (confirmId === r.id ? 'Confirmar' : 'Apagar') + '</button></li>';
+    }).reverse().join('');
+    renderRem();
+  }
+
+  /* lembrete semanal: aviso do navegador se permitido, e sempre um aviso dentro do app */
+  var RKEY = 'tempo-de-tela-lembrete', AKEY = 'tempo-de-tela-avisado';
+  function store(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function remOn() { return store(RKEY) === 'on'; }
+  function diasDesde(s) { return Math.round((dparse(todayStr()) - dparse(s)) / 86400000); }
+  function canNotify() { return 'Notification' in window && Notification.permission === 'granted'; }
+  function avisar(msg) {
+    if (!canNotify() || store(AKEY) === todayStr()) return;
+    try { new Notification('Tempo de Tela', { body: msg }); save(AKEY, todayStr()); } catch (e) {}
+  }
+  function msgAtraso(dias) {
+    return 'Faz ' + dias + ' ' + pl(dias, 'dia', 'dias') + ' desde o seu último registro. Hora de registrar a média da semana.';
+  }
+  function renderRem() {
+    var arr = sorted(), n = arr.length, box = $('evRem');
+    $('evRemBlock').hidden = n === 0;
+    if (!n) return;
+    var on = remOn(), dias = diasDesde(arr[n - 1].d), txt, btn;
+    if (!on) {
+      txt = '<p class="cmp-big">Quer ser lembrado toda semana?</p>' +
+        '<p class="hint">Aviso quando passar de 7 dias sem registro. Se o navegador permitir, o aviso chega como notificação.</p>';
+      btn = '<button type="button" class="primary" data-rem="on">Ativar lembrete semanal</button>';
+    } else {
+      txt = '<p class="cmp-big">Lembrete semanal ativo</p>' +
+        (dias >= 7
+          ? '<p class="rem-msg">' + msgAtraso(dias) + '</p>'
+          : '<p class="hint">Próximo aviso em ' + (7 - dias) + ' ' + pl(7 - dias, 'dia', 'dias') + '.</p>') +
+        (canNotify() ? '' : '<p class="hint">Seu navegador não está mostrando notificações. O lembrete aparece aqui sempre que você abrir o app.</p>');
+      btn = '<button type="button" class="primary" data-rem="test">Testar aviso agora</button>' +
+        '<button type="button" class="ghost" data-rem="off">Desativar</button>';
+    }
+    box.innerHTML = txt + btn;
+    if (on && dias >= 7) avisar(msgAtraso(dias));
+  }
+  function testarAviso() {
+    if (canNotify()) {
+      try {
+        new Notification('Tempo de Tela', { body: 'Teste: é assim que o lembrete vai aparecer.' });
+        toast('Aviso de teste enviado.');
+      } catch (e) { toast('Não consegui mostrar o aviso neste navegador.'); }
+    } else {
+      toast('Notificações bloqueadas. Libere nas configurações do navegador e tente de novo.');
+    }
+    renderRem();
+  }
+  $('evRem').addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-rem]');
+    if (!b) return;
+    if (b.getAttribute('data-rem') === 'test') {
+      if ('Notification' in window && Notification.permission === 'default') {
+        try { Notification.requestPermission().then(testarAviso, testarAviso); } catch (e) { testarAviso(); }
+      } else {
+        testarAviso();
+      }
+      return;
+    }
+    if (b.getAttribute('data-rem') === 'on') {
+      save(RKEY, 'on');
+      if ('Notification' in window && Notification.permission === 'default') {
+        try { Notification.requestPermission().then(renderRem, renderRem); } catch (e) {}
+      }
+      toast('Lembrete ativado. Aviso quando passar de 7 dias.');
+    } else {
+      save(RKEY, 'off');
+      toast('Lembrete desativado.');
+    }
+    renderRem();
+  });
+  if (remOn() && sorted().length) {
+    var ultimo = sorted()[sorted().length - 1];
+    if (diasDesde(ultimo.d) >= 7) avisar(msgAtraso(diasDesde(ultimo.d)));
+  }
+
+  $('segSem').addEventListener('click', function () { evTipo = 'semana'; renderEvForm(); });
+  $('segMes').addEventListener('click', function () { evTipo = 'mes'; renderEvForm(); });
+  evRange.addEventListener('input', function () { evTouched = true; evHours = Number(evRange.value); renderEvForm(); });
+  $('evMinus').addEventListener('click', function () { evTouched = true; evHours -= 0.25; renderEvForm(); });
+  $('evPlus').addEventListener('click', function () { evTouched = true; evHours += 0.25; renderEvForm(); });
+  $('evAdd').addEventListener('click', function () { $('evFile').click(); });
+  $('evRm').addEventListener('click', function () { evFoto = null; renderEvForm(); });
+
+  $('evFile').addEventListener('change', function () {
+    var inp = this, file = inp.files && inp.files[0];
+    if (!file) return;
+    var fr = new FileReader();
+    fr.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var s = Math.min(1, 1000 / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.width * s));
+        c.height = Math.max(1, Math.round(img.height * s));
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        try { evFoto = c.toDataURL('image/jpeg', 0.6); } catch (e) { evFoto = null; }
+        renderEvForm();
+      };
+      img.onerror = function () { toast('Não consegui abrir essa foto. Tente um print em JPG ou PNG.'); };
+      img.src = fr.result;
+    };
+    fr.onerror = function () { toast('Não consegui abrir essa foto.'); };
+    fr.readAsDataURL(file);
+    inp.value = '';
+  });
+
+  $('evSave').addEventListener('click', function () {
+    var d = evDate.value && /^\d{4}-\d{2}-\d{2}$/.test(evDate.value) ? evDate.value : todayStr();
+    var rec = { id: Date.now(), tipo: evTipo, d: d, h: evHours };
+    if (evFoto) rec.f = evFoto;
+    records.push(rec);
+    var msg = 'Registro salvo.';
+    if (!persist()) {
+      if (rec.f) {
+        delete rec.f;
+        if (persist()) msg = 'Registro salvo sem a foto. Faltou espaço no navegador.';
+        else { records.pop(); msg = 'Não consegui salvar neste navegador.'; }
+      } else { records.pop(); msg = 'Não consegui salvar neste navegador.'; }
+    }
+    if (msg.indexOf('Não') !== 0) {
+      var arr = sorted(), i = arr.indexOf(rec);
+      if (i > 0) msg += ' ' + deltaInfo(rec.h - arr[i - 1].h).t + '.';
+      evFoto = null;
+    }
+    renderEvForm(); renderEvo();
+    toast(msg);
+    try { $('evCmp').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }); } catch (e) {}
+  });
+
+  $('evHist').addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-act]');
+    if (!b) return;
+    var id = Number(b.getAttribute('data-id'));
+    var r = records.filter(function (x) { return x.id === id; })[0];
+    if (!r) return;
+    if (b.getAttribute('data-act') === 'open') {
+      if (r.f && PHOTO_RE.test(r.f)) { $('lbImg').src = r.f; $('lightbox').hidden = false; $('lbClose').focus(); }
+      return;
+    }
+    clearTimeout(confirmTimer);
+    if (confirmId === id) {
+      records = records.filter(function (x) { return x.id !== id; });
+      confirmId = null;
+      persist();
+      toast('Registro apagado.');
+    } else {
+      confirmId = id;
+      confirmTimer = setTimeout(function () { confirmId = null; renderEvo(); }, 4000);
+    }
+    renderEvo();
+  });
+
+  function closeLb() { $('lightbox').hidden = true; $('lbImg').removeAttribute('src'); }
+  $('lightbox').addEventListener('click', closeLb);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('lightbox').hidden) closeLb(); });
+
+  evDate.max = todayStr();
+  evDate.value = todayStr();
+
+  /* abas do app */
+  var VIEWS = ['calc', 'evo', 'eff', 'tip', 'team'];
+  function go(v) {
+    if (VIEWS.indexOf(v) < 0) v = 'calc';
+    if (v === 'evo') {
+      if (!evTouched) evHours = hours;
+      renderEvForm(); renderEvo();
+    }
+    VIEWS.forEach(function (k) { document.getElementById('v-' + k).hidden = k !== v; });
+    Array.prototype.forEach.call(document.querySelectorAll('.nav button'), function (b) {
+      if (b.getAttribute('data-go') === v) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
+    try { window.scrollTo(0, 0); } catch (e) {}
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-go]'), function (b) {
+    b.addEventListener('click', function () { go(b.getAttribute('data-go')); });
+  });
+
+  /* tema claro ou escuro, escolhido pela pessoa */
+  var TKEY = 'tempo-de-tela-tema', root = document.documentElement, themeBtn = $('themeBtn');
+  var darkMQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  var SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  var MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  function isDark() {
+    var t = root.getAttribute('data-theme');
+    if (t) return t === 'dark';
+    return !!(darkMQ && darkMQ.matches);
+  }
+  function paintTheme() {
+    var dark = isDark();
+    themeBtn.setAttribute('aria-label', dark ? 'Usar tema claro' : 'Usar tema escuro');
+    themeBtn.setAttribute('title', dark ? 'Tema claro' : 'Tema escuro');
+    themeBtn.innerHTML = dark ? SUN : MOON;
+  }
+  try {
+    var savedTheme = localStorage.getItem(TKEY);
+    if (savedTheme === 'light' || savedTheme === 'dark') root.setAttribute('data-theme', savedTheme);
+  } catch (e) {}
+  themeBtn.addEventListener('click', function () {
+    var next = isDark() ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(TKEY, next); } catch (e) {}
+    paintTheme();
+  });
+  if (darkMQ && darkMQ.addEventListener) darkMQ.addEventListener('change', paintTheme);
+  paintTheme();
+
+  $('headLogo').src = $('splashLogo').src;
+  $('teamLogo').src = $('splashLogo').src;
+  render();
+
+  /* splash de 1,5 a 3 segundos */
+  var splash = $('splash'), app = $('app');
+  var dur = Math.round(1500 + Math.random() * 1500);
+  app.inert = true;
+  setTimeout(function () {
+    splash.classList.add('out');
+    app.inert = false;
+    setTimeout(function () { splash.hidden = true; }, reduce ? 0 : 480);
+  }, dur);
+})();
+</script>
+</body>
+</html>
