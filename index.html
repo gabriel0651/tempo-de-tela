@@ -368,6 +368,16 @@ img { max-width: 100%; }
       <div class="cmp" id="evChart"></div>
     </section>
 
+    <section class="block" aria-labelledby="qDados">
+      <h2 id="qDados">Seus dados</h2>
+      <p class="hint">Os registros ficam guardados só neste navegador. Exporte um arquivo de vez em quando para não perder nada, e use o mesmo arquivo para trazer tudo para outro aparelho.</p>
+      <div class="photo-row">
+        <button type="button" class="ghost" id="evExp">Exportar dados</button>
+        <button type="button" class="ghost" id="evImp">Importar dados</button>
+        <input id="evImpFile" type="file" accept="application/json,.json" hidden>
+      </div>
+    </section>
+
     <section class="block" aria-labelledby="qHist" id="evHistBlock">
       <h2 id="qHist">Histórico</h2>
       <ul class="hist" id="evHist"></ul>
@@ -379,12 +389,21 @@ img { max-width: 100%; }
     <p class="lead">Usar o celular não é o problema. O peso vem das horas que se somam todos os dias.</p>
     <div class="panel">
       <ul class="tiplist">
-        <li><strong>Sono pior</strong><span>A luz da tela e o conteúdo sem fim atrasam a hora de dormir e deixam o sono mais leve.</span></li>
-        <li><strong>Vista cansada</strong><span>Piscamos menos olhando para a tela. Os olhos ressecam e a dor de cabeça aparece.</span></li>
-        <li><strong>Pescoço e costas</strong><span>Horas com a cabeça baixa sobrecarregam pescoço, ombros e coluna.</span></li>
-        <li><strong>Menos concentração</strong><span>Cada notificação corta o raciocínio, e voltar ao estudo depois dela leva tempo.</span></li>
-        <li><strong>Humor e ansiedade</strong><span>Muito tempo em redes sociais está ligado a mais ansiedade e a se comparar com os outros.</span></li>
+        <li><strong>Sono pior</strong><span>Ler em tela antes de dormir atrasa o sono. Em um estudo com 12 adultos, a leitura no aparelho reduziu a melatonina e demorou mais para pegar no sono do que ler um livro impresso.</span></li>
+        <li><strong>Vista cansada</strong><span>Segundo a Academia Americana de Oftalmologia, a frequência de piscadas cai pela metade ao olhar para telas. Os olhos ressecam e podem doer, e a dor de cabeça também aparece.</span></li>
+        <li><strong>Pescoço e costas</strong><span>Horas com a cabeça inclinada costumam causar desconforto no pescoço e nos ombros. A pesquisa ainda não é conclusiva sobre quanto isso leva a dor crônica.</span></li>
+        <li><strong>Menos concentração</strong><span>Em um estudo de Gloria Mark, da Universidade da Califórnia em Irvine, sobre interrupções no trabalho, as pessoas levaram em média 23 minutos para voltar à tarefa interrompida.</span></li>
+        <li><strong>Humor e ansiedade</strong><span>Muito tempo em redes sociais aparece junto com pior bem-estar, mas a ligação é pequena. Em um estudo de 2019 com grandes bases de dados, o tempo de tela explicou só 0,4% das diferenças de bem-estar entre adolescentes.</span></li>
         <li><strong>Menos tempo para o resto</strong><span>Cada hora na tela é uma hora a menos para esporte, amigos, família e estudo.</span></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <p class="hint"><strong>Fontes</strong></p>
+      <ul class="hint" style="padding-left:18px;display:grid;gap:6px">
+        <li>Chang, A.-M. et al. Evening use of light-emitting eReaders. PNAS, 2015. Estudo do Brigham and Women's Hospital.</li>
+        <li>Academia Americana de Oftalmologia. Protect your eyes from too much screen time. aao.org (sobre piscadas e olhos secos).</li>
+        <li>Mark, G. Estudo sobre interrupções no trabalho, Universidade da Califórnia em Irvine. Resumo em news.gallup.com.</li>
+        <li>Orben, A. e Przybylski, A. K. Nature Human Behaviour, 2019.</li>
       </ul>
     </div>
     <button class="ghost" type="button" data-go="tip">Ver como usar menos</button>
@@ -400,7 +419,7 @@ img { max-width: 100%; }
         <li><strong>Uma hora sem tela antes de dormir</strong><span>Troque por leitura, banho ou conversa.</span></li>
         <li><strong>Use o limite do próprio celular</strong><span>No iPhone, Tempo de Uso. No Android, Bem-estar Digital. Ali dá para definir um tempo máximo por app.</span></li>
         <li><strong>Esconda as redes sociais</strong><span>Tire os apps da primeira tela. Se der trabalho para abrir, você abre menos.</span></li>
-        <li><strong>Celular em outra sala ao estudar</strong><span>Só de ficar à vista, ele já puxa a atenção.</span></li>
+        <li><strong>Celular em outra sala ao estudar</strong><span>Com ele fora do alcance, a vontade de olhar diminui.</span></li>
       </ul>
     </div>
     <button class="ghost" type="button" data-go="calc">Simular quanto tempo eu ganho</button>
@@ -732,6 +751,98 @@ img { max-width: 100%; }
     renderRem();
   }
 
+  /* exportar e importar os dados */
+  function validRec(r) {
+    return r && typeof r.h === 'number' && r.h > 0 && r.h <= 24 && typeof r.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.d);
+  }
+  $('evExp').addEventListener('click', function () {
+    var ultimo = null;
+    try { ultimo = JSON.parse(store(KEY) || 'null'); } catch (e) {}
+    var data = { app: 'tempo-de-tela', versao: 1, exportadoEm: new Date().toISOString(), registros: records, ultimo: ultimo };
+    var blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'tempo-de-tela-' + todayStr() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    toast('Arquivo gerado. Guarde em um lugar seguro.');
+  });
+  $('evImp').addEventListener('click', function () { $('evImpFile').click(); });
+  $('evImpFile').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    this.value = '';
+    if (!f) return;
+    if (f.size > 20 * 1024 * 1024) { toast('Esse arquivo é grande demais para ser de dados do app.'); return; }
+    var fr = new FileReader();
+    fr.onload = function () {
+      var d;
+      try { d = JSON.parse(fr.result); } catch (e) { d = null; }
+      if (!d || d.app !== 'tempo-de-tela' || !Array.isArray(d.registros)) {
+        toast('Esse arquivo não é de dados do Tempo de Tela.');
+        return;
+      }
+      var ids = {};
+      records.forEach(function (r) { ids[r.id] = true; });
+      var novos = d.registros.filter(function (r) { return validRec(r) && !ids[r.id]; }).map(function (r) {
+        if (r.f && !PHOTO_RE.test(r.f)) delete r.f;
+        return r;
+      });
+      records = records.concat(novos);
+      var salvo = persist();
+      if (d.ultimo && typeof d.ultimo === 'object') {
+        try { localStorage.setItem(KEY, JSON.stringify(d.ultimo)); } catch (e) {}
+      }
+      renderEvo(); renderRem();
+      if (!salvo) toast('Importei, mas o navegador não guardou tudo. Libere espaço e tente de novo.');
+      else toast(novos.length ? novos.length + ' ' + pl(novos.length, 'registro importado.', 'registros importados.') : 'Nenhum registro novo neste arquivo.');
+    };
+    fr.onerror = function () { toast('Não consegui ler esse arquivo.'); };
+    fr.readAsText(f);
+  });
+
+  /* lembrete para o calendário: evento que se repete todo domingo às 19h */
+  function gerarIcs() {
+    var agora = new Date();
+    var s = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 19, 0, 0);
+    s.setDate(s.getDate() + ((7 - s.getDay()) % 7));
+    if (s <= agora) s.setDate(s.getDate() + 7);
+    function p2(n) { return String(n).padStart(2, '0'); }
+    function local(dt) {
+      return dt.getFullYear() + p2(dt.getMonth() + 1) + p2(dt.getDate()) + 'T' + p2(dt.getHours()) + p2(dt.getMinutes()) + '00';
+    }
+    var u = agora.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    var linhas = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Tempo de Tela//PT-BR',
+      'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      'UID:tempo-de-tela-semanal-' + Date.now() + '@tempo-de-tela',
+      'DTSTAMP:' + u,
+      'DTSTART:' + local(s),
+      'DURATION:PT10M',
+      'RRULE:FREQ=WEEKLY;BYDAY=SU',
+      'SUMMARY:Registrar o tempo de tela da semana',
+      'DESCRIPTION:Abra o app Tempo de Tela e registre sua média diária da semana.',
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Registrar o tempo de tela da semana',
+      'TRIGGER:-PT0M',
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ];
+    var blob = new Blob([linhas.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'lembrete-tempo-de-tela.ics';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    toast('Arquivo do lembrete baixado. Abra-o para adicionar ao calendário.');
+  }
+
   /* lembrete semanal: aviso do navegador se permitido, e sempre um aviso dentro do app */
   var RKEY = 'tempo-de-tela-lembrete', AKEY = 'tempo-de-tela-avisado';
   function store(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -754,7 +865,8 @@ img { max-width: 100%; }
     if (!on) {
       txt = '<p class="cmp-big">Quer ser lembrado toda semana?</p>' +
         '<p class="hint">Aviso quando passar de 7 dias sem registro. Se o navegador permitir, o aviso chega como notificação.</p>';
-      btn = '<button type="button" class="primary" data-rem="on">Ativar lembrete semanal</button>';
+      btn = '<button type="button" class="primary" data-rem="on">Ativar lembrete semanal</button>' +
+        '<button type="button" class="ghost" data-rem="ics">Baixar para o calendário</button>';
     } else {
       txt = '<p class="cmp-big">Lembrete semanal ativo</p>' +
         (dias >= 7
@@ -762,6 +874,7 @@ img { max-width: 100%; }
           : '<p class="hint">Próximo aviso em ' + (7 - dias) + ' ' + pl(7 - dias, 'dia', 'dias') + '.</p>') +
         (canNotify() ? '' : '<p class="hint">Seu navegador não está mostrando notificações. O lembrete aparece aqui sempre que você abrir o app.</p>');
       btn = '<button type="button" class="primary" data-rem="test">Testar aviso agora</button>' +
+        '<button type="button" class="ghost" data-rem="ics">Baixar para o calendário</button>' +
         '<button type="button" class="ghost" data-rem="off">Desativar</button>';
     }
     box.innerHTML = txt + btn;
@@ -781,6 +894,7 @@ img { max-width: 100%; }
   $('evRem').addEventListener('click', function (ev) {
     var b = ev.target.closest('[data-rem]');
     if (!b) return;
+    if (b.getAttribute('data-rem') === 'ics') { gerarIcs(); return; }
     if (b.getAttribute('data-rem') === 'test') {
       if ('Notification' in window && Notification.permission === 'default') {
         try { Notification.requestPermission().then(testarAviso, testarAviso); } catch (e) { testarAviso(); }
