@@ -751,6 +751,26 @@ img { max-width: 100%; }
     renderRem();
   }
 
+  /* salvar um arquivo: dentro do artefato pede permissão ao usuário; no site normal baixa direto */
+  async function baixar(nome, conteudo, tipo) {
+    if (window.claude && typeof window.claude.use === 'function') {
+      var dl = null;
+      try { dl = await window.claude.use('downloads'); } catch (e) { dl = null; }
+      if (!dl) { toast('Não consegui salvar o arquivo aqui. Tente pelo link do app.'); return false; }
+      try { await dl.save({ filename: nome, data: conteudo }); toast('Arquivo salvo.'); return true; }
+      catch (e) { toast(e && e.code === 'declined' ? 'Salvamento cancelado.' : 'Não consegui salvar esse arquivo aqui.'); return false; }
+    }
+    var blob = new Blob([conteudo], { type: tipo + ';charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = nome;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    toast('Arquivo gerado. Guarde em um lugar seguro.');
+    return true;
+  }
+
   /* exportar e importar os dados */
   function validRec(r) {
     return r && typeof r.h === 'number' && r.h > 0 && r.h <= 24 && typeof r.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.d);
@@ -759,14 +779,7 @@ img { max-width: 100%; }
     var ultimo = null;
     try { ultimo = JSON.parse(store(KEY) || 'null'); } catch (e) {}
     var data = { app: 'tempo-de-tela', versao: 1, exportadoEm: new Date().toISOString(), registros: records, ultimo: ultimo };
-    var blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'tempo-de-tela-' + todayStr() + '.json';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-    toast('Arquivo gerado. Guarde em um lugar seguro.');
+    baixar('tempo-de-tela-' + todayStr() + '.json', JSON.stringify(data), 'application/json');
   });
   $('evImp').addEventListener('click', function () { $('evImpFile').click(); });
   $('evImpFile').addEventListener('change', function () {
@@ -833,14 +846,7 @@ img { max-width: 100%; }
       'END:VEVENT',
       'END:VCALENDAR'
     ];
-    var blob = new Blob([linhas.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'lembrete-tempo-de-tela.ics';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-    toast('Arquivo do lembrete baixado. Abra-o para adicionar ao calendário.');
+    baixar('lembrete-tempo-de-tela.ics', linhas.join('\r\n'), 'text/calendar');
   }
 
   /* lembrete semanal: aviso do navegador se permitido, e sempre um aviso dentro do app */
@@ -866,7 +872,7 @@ img { max-width: 100%; }
       txt = '<p class="cmp-big">Quer ser lembrado toda semana?</p>' +
         '<p class="hint">Aviso quando passar de 7 dias sem registro. Se o navegador permitir, o aviso chega como notificação.</p>';
       btn = '<button type="button" class="primary" data-rem="on">Ativar lembrete semanal</button>' +
-        '<button type="button" class="ghost" data-rem="ics">Baixar para o calendário</button>';
+        (window.claude ? '' : '<button type="button" class="ghost" data-rem="ics">Baixar para o calendário</button>');
     } else {
       txt = '<p class="cmp-big">Lembrete semanal ativo</p>' +
         (dias >= 7
@@ -874,7 +880,7 @@ img { max-width: 100%; }
           : '<p class="hint">Próximo aviso em ' + (7 - dias) + ' ' + pl(7 - dias, 'dia', 'dias') + '.</p>') +
         (canNotify() ? '' : '<p class="hint">Seu navegador não está mostrando notificações. O lembrete aparece aqui sempre que você abrir o app.</p>');
       btn = '<button type="button" class="primary" data-rem="test">Testar aviso agora</button>' +
-        '<button type="button" class="ghost" data-rem="ics">Baixar para o calendário</button>' +
+        (window.claude ? '' : '<button type="button" class="ghost" data-rem="ics">Baixar para o calendário</button>') +
         '<button type="button" class="ghost" data-rem="off">Desativar</button>';
     }
     box.innerHTML = txt + btn;
