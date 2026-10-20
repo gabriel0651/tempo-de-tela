@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2F4392">
 <link rel="icon" type="image/png" href="logo.png">
-<title>Tempo de Tela</title>
+<title>Time Control</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -248,7 +248,7 @@ img { max-width: 100%; }
   <div class="splash-inner">
     <img id="splashLogo" class="splash-logo" src="logo.png" alt="Logo do IMMC" width="132" height="132">
     <svg class="spin" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="#FF5C66" stroke-width="5" stroke-linecap="round" stroke-dasharray="92 200"/></svg>
-    <div class="splash-name">Tempo de Tela</div>
+    <div class="splash-name">Time Control</div>
     <p class="splash-tag">Veja quanto da sua vida vai para o celular</p>
   </div>
 </div>
@@ -257,7 +257,7 @@ img { max-width: 100%; }
   <header class="top">
     <img id="headLogo" alt="Logo do IMMC" width="44" height="44">
     <div>
-      <h1>Tempo de Tela</h1>
+      <h1>Time Control</h1>
       <span>IMMC</span>
     </div>
     <button type="button" class="theme-btn" id="themeBtn"></button>
@@ -429,7 +429,7 @@ img { max-width: 100%; }
     <h2 class="view-title">Criadores</h2>
     <div class="team-card">
       <img id="teamLogo" alt="Logo do IMMC" width="64" height="64">
-      <div><strong>Tempo de Tela</strong><span>Projeto escolar do IMMC, 2026</span></div>
+      <div><strong>Time Control</strong><span>Projeto escolar do IMMC, 2026</span></div>
     </div>
     <ul class="people" id="people"></ul>
     <p class="prof" style="margin-top:16px;opacity:.85"><b>Professor:</b> Lucas</p>
@@ -779,7 +779,7 @@ img { max-width: 100%; }
     var ultimo = null;
     try { ultimo = JSON.parse(store(KEY) || 'null'); } catch (e) {}
     var data = { app: 'tempo-de-tela', versao: 1, exportadoEm: new Date().toISOString(), registros: records, ultimo: ultimo };
-    baixar('tempo-de-tela-' + todayStr() + '.json', JSON.stringify(data), 'application/json');
+    baixar('time-control-' + todayStr() + '.json', JSON.stringify(data), 'application/json');
   });
   $('evImp').addEventListener('click', function () { $('evImpFile').click(); });
   $('evImpFile').addEventListener('change', function () {
@@ -792,7 +792,7 @@ img { max-width: 100%; }
       var d;
       try { d = JSON.parse(fr.result); } catch (e) { d = null; }
       if (!d || d.app !== 'tempo-de-tela' || !Array.isArray(d.registros)) {
-        toast('Esse arquivo não é de dados do Tempo de Tela.');
+        toast('Esse arquivo não é de dados do Time Control.');
         return;
       }
       var ids = {};
@@ -828,7 +828,7 @@ img { max-width: 100%; }
     var linhas = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//Tempo de Tela//PT-BR',
+      'PRODID:-//Time Control//PT-BR',
       'CALSCALE:GREGORIAN',
       'BEGIN:VEVENT',
       'UID:tempo-de-tela-semanal-' + Date.now() + '@tempo-de-tela',
@@ -837,7 +837,7 @@ img { max-width: 100%; }
       'DURATION:PT10M',
       'RRULE:FREQ=WEEKLY;BYDAY=SU',
       'SUMMARY:Registrar o tempo de tela da semana',
-      'DESCRIPTION:Abra o app Tempo de Tela e registre sua média diária da semana.',
+      'DESCRIPTION:Abra o app Time Control e registre sua média diária da semana.',
       'BEGIN:VALARM',
       'ACTION:DISPLAY',
       'DESCRIPTION:Registrar o tempo de tela da semana',
@@ -846,7 +846,7 @@ img { max-width: 100%; }
       'END:VEVENT',
       'END:VCALENDAR'
     ];
-    baixar('lembrete-tempo-de-tela.ics', linhas.join('\r\n'), 'text/calendar');
+    baixar('lembrete-time-control.ics', linhas.join('\r\n'), 'text/calendar');
   }
 
   /* lembrete semanal: aviso do navegador se permitido, e sempre um aviso dentro do app */
@@ -858,7 +858,7 @@ img { max-width: 100%; }
   function canNotify() { return 'Notification' in window && Notification.permission === 'granted'; }
   function avisar(msg) {
     if (!canNotify() || store(AKEY) === todayStr()) return;
-    try { new Notification('Tempo de Tela', { body: msg }); save(AKEY, todayStr()); } catch (e) {}
+    try { new Notification('Time Control', { body: msg }); save(AKEY, todayStr()); } catch (e) {}
   }
   function msgAtraso(dias) {
     return 'Faz ' + dias + ' ' + pl(dias, 'dia', 'dias') + ' desde o seu último registro. Hora de registrar a média da semana.';
@@ -889,7 +889,7 @@ img { max-width: 100%; }
   function testarAviso() {
     if (canNotify()) {
       try {
-        new Notification('Tempo de Tela', { body: 'Teste: é assim que o lembrete vai aparecer.' });
+        new Notification('Time Control', { body: 'Teste: é assim que o lembrete vai aparecer.' });
         toast('Aviso de teste enviado.');
       } catch (e) { toast('Não consegui mostrar o aviso neste navegador.'); }
     } else {
