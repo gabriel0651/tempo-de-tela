@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2F4392">
 <link rel="icon" type="image/png" href="logo.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Time Control">
 <title>Time Control</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -856,9 +861,20 @@ img { max-width: 100%; }
   function remOn() { return store(RKEY) === 'on'; }
   function diasDesde(s) { return Math.round((dparse(todayStr()) - dparse(s)) / 86400000); }
   function canNotify() { return 'Notification' in window && Notification.permission === 'granted'; }
+  /* No Android o navegador não aceita new Notification(): precisa passar pelo service worker */
+  function mostrarNotificacao(titulo, corpo) {
+    var opcoes = { body: corpo, icon: 'icon-192.png', tag: 'time-control-lembrete' };
+    if ('serviceWorker' in navigator && navigator.serviceWorker.getRegistration) {
+      return navigator.serviceWorker.getRegistration().then(function (reg) {
+        if (reg && reg.showNotification) return reg.showNotification(titulo, opcoes);
+        new Notification(titulo, { body: corpo });
+      });
+    }
+    return new Promise(function (ok) { new Notification(titulo, { body: corpo }); ok(); });
+  }
   function avisar(msg) {
     if (!canNotify() || store(AKEY) === todayStr()) return;
-    try { new Notification('Time Control', { body: msg }); save(AKEY, todayStr()); } catch (e) {}
+    mostrarNotificacao('Time Control', msg).then(function () { save(AKEY, todayStr()); }, function () {});
   }
   function msgAtraso(dias) {
     return 'Faz ' + dias + ' ' + pl(dias, 'dia', 'dias') + ' desde o seu último registro. Hora de registrar a média da semana.';
@@ -888,10 +904,10 @@ img { max-width: 100%; }
   }
   function testarAviso() {
     if (canNotify()) {
-      try {
-        new Notification('Time Control', { body: 'Teste: é assim que o lembrete vai aparecer.' });
-        toast('Aviso de teste enviado.');
-      } catch (e) { toast('Não consegui mostrar o aviso neste navegador.'); }
+      mostrarNotificacao('Time Control', 'Teste: é assim que o lembrete vai aparecer.').then(
+        function () { toast('Aviso de teste enviado.'); },
+        function () { toast('Não consegui mostrar o aviso neste navegador.'); }
+      );
     } else {
       toast('Notificações bloqueadas. Libere nas configurações do navegador e tente de novo.');
     }
@@ -1074,6 +1090,11 @@ img { max-width: 100%; }
     setTimeout(function () { splash.hidden = true; }, reduce ? 0 : 480);
   }, dur);
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator && !window.claude && location.protocol.indexOf('http') === 0) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
 </script>
 </body>
 </html>
