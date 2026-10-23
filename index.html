@@ -149,6 +149,31 @@ input[type=range]::-moz-range-thumb { box-sizing: border-box; width: 26px; heigh
 .view-title { font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; line-height: 1.15; letter-spacing: -.015em; text-wrap: balance; }
 .lead { color: var(--muted); font-size: 1rem; max-width: 60ch; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 4px 18px; }
+.fxlist, .tplist { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.fx, .tp { display: flex; gap: 14px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; animation: subir .5s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * 70ms); }
+.fx > div, .tp > div { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.fx strong, .tp strong { font-family: var(--font-display); font-size: 1.08rem; font-weight: 700; }
+.fx .tx, .tp .tx { color: var(--muted); font-size: .92rem; line-height: 1.5; }
+.ico { flex: none; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; }
+.ico svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.fx .ico { background: var(--bad-soft); color: var(--bad); }
+.tp .ico { background: var(--blue-soft); color: var(--blue); }
+.fx .stat { align-self: flex-start; font-style: normal; font-size: .78rem; font-weight: 700; color: var(--bad); background: var(--bad-soft); padding: 3px 10px; border-radius: 999px; margin: 2px 0 2px; }
+.pick { margin-top: 8px; align-self: flex-start; font: inherit; font-size: .85rem; font-weight: 600; color: var(--blue); background: transparent; border: 1.5px solid var(--blue); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.pick .pk-on { display: none; }
+.pick[aria-pressed="true"] { background: var(--blue); color: var(--btn-fg, #fff); }
+.pick[aria-pressed="true"] .pk-on { display: inline; }
+.pick[aria-pressed="true"] .pk-off { display: none; }
+.tp.on { border-color: var(--blue); animation: pulo .35s ease; }
+.progress { background: var(--hero-bg); color: #fff; border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.pg-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.pg-top strong { font-family: var(--font-display); font-size: 1.05rem; }
+.pg-top span { font-size: .85rem; color: rgba(255,255,255,.75); text-align: right; }
+.pg-bar { height: 10px; border-radius: 6px; background: rgba(255,255,255,.2); overflow: hidden; }
+.pg-bar i { display: block; height: 100%; width: 0; background: var(--coral); border-radius: 6px; transition: width .45s cubic-bezier(.2,.8,.2,1); }
+@keyframes subir { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes pulo { 0% { transform: scale(1); } 45% { transform: scale(1.025); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .fx, .tp, .tp.on { animation: none; } .pg-bar i { transition: none; } }
 .tiplist { list-style: none; padding: 0; }
 .tiplist li { padding: 14px 0; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
 .tiplist li:last-child { border-bottom: 0; }
@@ -428,16 +453,14 @@ img { max-width: 100%; }
   <div class="view" id="v-eff" hidden>
     <h2 class="view-title">O que o uso excessivo do celular causa</h2>
     <p class="lead">Usar o celular não é o problema. O peso vem das horas que se somam todos os dias.</p>
-    <div class="panel">
-      <ul class="tiplist">
-        <li><strong>Sono pior</strong><span>Ler em tela antes de dormir atrasa o sono. Em um estudo com 12 adultos, a leitura no aparelho reduziu a melatonina e demorou mais para pegar no sono do que ler um livro impresso.</span></li>
-        <li><strong>Vista cansada</strong><span>Segundo a Academia Americana de Oftalmologia, a frequência de piscadas cai pela metade ao olhar para telas. Os olhos ressecam e podem doer, e a dor de cabeça também aparece.</span></li>
-        <li><strong>Pescoço e costas</strong><span>Horas com a cabeça inclinada costumam causar desconforto no pescoço e nos ombros. A pesquisa ainda não é conclusiva sobre quanto isso leva a dor crônica.</span></li>
-        <li><strong>Menos concentração</strong><span>Em um estudo de Gloria Mark, da Universidade da Califórnia em Irvine, sobre interrupções no trabalho, as pessoas levaram em média 23 minutos para voltar à tarefa interrompida.</span></li>
-        <li><strong>Humor e ansiedade</strong><span>Muito tempo em redes sociais aparece junto com pior bem-estar, mas a ligação é pequena. Em um estudo de 2019 com grandes bases de dados, o tempo de tela explicou só 0,4% das diferenças de bem-estar entre adolescentes.</span></li>
-        <li><strong>Menos tempo para o resto</strong><span>Cada hora na tela é uma hora a menos para esporte, amigos, família e estudo.</span></li>
+    <ul class="fxlist">
+        <li class="fx" style="--i:0"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></span><div><strong>Sono pior</strong><span class="tx">Ler em tela antes de dormir atrasa o sono. Em um estudo com 12 adultos, a leitura no aparelho reduziu a melatonina e demorou mais para pegar no sono do que ler um livro impresso.</span></div></li>
+        <li class="fx" style="--i:1"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><div><strong>Vista cansada</strong><em class="stat">50% menos piscadas</em><span class="tx">Segundo a Academia Americana de Oftalmologia, a frequência de piscadas cai pela metade ao olhar para telas. Os olhos ressecam e podem doer, e a dor de cabeça também aparece.</span></div></li>
+        <li class="fx" style="--i:2"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5"/><path d="M5 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/></svg></span><div><strong>Pescoço e costas</strong><span class="tx">Horas com a cabeça inclinada costumam causar desconforto no pescoço e nos ombros. A pesquisa ainda não é conclusiva sobre quanto isso leva a dor crônica.</span></div></li>
+        <li class="fx" style="--i:3"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><div><strong>Menos concentração</strong><em class="stat">23 min para voltar</em><span class="tx">Em um estudo de Gloria Mark, da Universidade da Califórnia em Irvine, sobre interrupções no trabalho, as pessoas levaram em média 23 minutos para voltar à tarefa interrompida.</span></div></li>
+        <li class="fx" style="--i:4"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9.5h.01M15 9.5h.01"/></svg></span><div><strong>Humor e ansiedade</strong><em class="stat">0,4% do bem-estar</em><span class="tx">Muito tempo em redes sociais aparece junto com pior bem-estar, mas a ligação é pequena. Em um estudo de 2019 com grandes bases de dados, o tempo de tela explicou só 0,4% das diferenças de bem-estar entre adolescentes.</span></div></li>
+        <li class="fx" style="--i:5"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div><strong>Menos tempo para o resto</strong><span class="tx">Cada hora na tela é uma hora a menos para esporte, amigos, família e estudo.</span></div></li>
       </ul>
-    </div>
     <div class="panel">
       <p class="hint"><strong>Fontes</strong></p>
       <ul class="hint" style="padding-left:18px;display:grid;gap:6px">
@@ -453,16 +476,15 @@ img { max-width: 100%; }
   <div class="view" id="v-tip" hidden>
     <h2 class="view-title">Como usar o celular com equilíbrio</h2>
     <p class="lead">Não precisa largar de vez. Escolha uma ou duas mudanças e veja quanto tempo volta para você.</p>
-    <div class="panel">
-      <ul class="tiplist">
-        <li><strong>Desligue notificações</strong><span>Deixe só as de pessoas. Avisos de jogos e promoções podem ficar mudos.</span></li>
-        <li><strong>Carregue fora do quarto</strong><span>Sem o celular na cama, fica mais fácil dormir cedo e acordar sem rolar a tela.</span></li>
-        <li><strong>Uma hora sem tela antes de dormir</strong><span>Troque por leitura, banho ou conversa.</span></li>
-        <li><strong>Use o limite do próprio celular</strong><span>No iPhone, Tempo de Uso. No Android, Bem-estar Digital. Ali dá para definir um tempo máximo por app.</span></li>
-        <li><strong>Esconda as redes sociais</strong><span>Tire os apps da primeira tela. Se der trabalho para abrir, você abre menos.</span></li>
-        <li><strong>Celular em outra sala ao estudar</strong><span>Com ele fora do alcance, a vontade de olhar diminui.</span></li>
+    <div class="progress" aria-live="polite"><div class="pg-top"><strong id="pgTxt">Você escolheu 0 de 6</strong><span id="pgMsg">Comece por uma</span></div><div class="pg-bar"><i id="pgFill"></i></div></div>
+      <ul class="tplist">
+        <li class="tp" style="--i:0"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></svg></span><div><strong>Desligue notificações</strong><span class="tx">Deixe só as de pessoas. Avisos de jogos e promoções podem ficar mudos.</span><button type="button" class="pick" aria-pressed="false" data-tip="0"><span class="pk-off">Vou tentar</span><span class="pk-on">Escolhida</span></button></div></li>
+        <li class="tp" style="--i:1"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18V8M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5"/></svg></span><div><strong>Carregue fora do quarto</strong><span class="tx">Sem o celular na cama, fica mais fácil dormir cedo e acordar sem rolar a tela.</span><button type="button" class="pick" aria-pressed="false" data-tip="1"><span class="pk-off">Vou tentar</span><span class="pk-on">Escolhida</span></button></div></li>
+        <li class="tp" style="--i:2"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19a2 2 0 0 1 2-2h13"/></svg></span><div><strong>Uma hora sem tela antes de dormir</strong><span class="tx">Troque por leitura, banho ou conversa.</span><button type="button" class="pick" aria-pressed="false" data-tip="2"><span class="pk-off">Vou tentar</span><span class="pk-on">Escolhida</span></button></div></li>
+        <li class="tp" style="--i:3"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg></span><div><strong>Use o limite do próprio celular</strong><span class="tx">No iPhone, Tempo de Uso. No Android, Bem-estar Digital. Ali dá para definir um tempo máximo por app.</span><button type="button" class="pick" aria-pressed="false" data-tip="3"><span class="pk-off">Vou tentar</span><span class="pk-on">Escolhida</span></button></div></li>
+        <li class="tp" style="--i:4"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18M10.6 6.2A9.5 9.5 0 0 1 12 6c6 0 9.5 6 9.5 6a16 16 0 0 1-3 3.7M6.5 7.6A16 16 0 0 0 2.5 12S6 18 12 18c1.5 0 2.8-.4 4-.9"/></svg></span><div><strong>Esconda as redes sociais</strong><span class="tx">Tire os apps da primeira tela. Se der trabalho para abrir, você abre menos.</span><button type="button" class="pick" aria-pressed="false" data-tip="4"><span class="pk-off">Vou tentar</span><span class="pk-on">Escolhida</span></button></div></li>
+        <li class="tp" style="--i:5"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v17M3 21h18M12 12h.01"/></svg></span><div><strong>Celular em outra sala ao estudar</strong><span class="tx">Com ele fora do alcance, a vontade de olhar diminui.</span><button type="button" class="pick" aria-pressed="false" data-tip="5"><span class="pk-off">Vou tentar</span><span class="pk-on">Escolhida</span></button></div></li>
       </ul>
-    </div>
     <button class="ghost" type="button" data-go="calc">Simular quanto tempo eu ganho</button>
   </div>
 
@@ -786,6 +808,32 @@ img { max-width: 100%; }
   });
 
   /* criadores */
+
+  /* dicas: escolher o que vai tentar (guardado só neste aparelho) */
+  (function () {
+    var KEY = 'tempo-de-tela-dicas', botoes = document.querySelectorAll('.pick'), sel = [];
+    try { sel = JSON.parse(localStorage.getItem(KEY) || '[]'); if (!Array.isArray(sel)) sel = []; } catch (e) { sel = []; }
+    function msg(n) { return n === 0 ? 'Comece por uma' : n <= 2 ? 'Ótimo começo' : n <= 4 ? 'Já é bastante, vá com calma' : 'Cuidado para não querer tudo de uma vez'; }
+    function pintar() {
+      botoes.forEach(function (b) {
+        var on = sel.indexOf(b.getAttribute('data-tip')) > -1;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        b.closest('.tp').classList.toggle('on', on);
+      });
+      $('pgTxt').textContent = 'Você escolheu ' + sel.length + ' de ' + botoes.length;
+      $('pgMsg').textContent = msg(sel.length);
+      $('pgFill').style.width = (sel.length / botoes.length * 100) + '%';
+    }
+    botoes.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var k = b.getAttribute('data-tip'), i = sel.indexOf(k);
+        if (i > -1) sel.splice(i, 1); else sel.push(k);
+        try { localStorage.setItem(KEY, JSON.stringify(sel)); } catch (e) {}
+        pintar();
+      });
+    });
+    pintar();
+  })();
   var TEAM = ['Gabriel Nascimento de Oliveira', 'Mariana Campos Borges', 'Matheus Theodoro C. A. Silva', 'Emanuelly Nogueira Hussein', 'Giovana Carvalho Bueno'];
   $('people').innerHTML = TEAM.map(function (n) {
     var i = n.indexOf(' ');
