@@ -165,6 +165,16 @@ input[type=range]::-moz-range-thumb { box-sizing: border-box; width: 26px; heigh
 .team-card img { width: 64px; height: 64px; border-radius: 17%; flex: none; }
 .team-card strong { display: block; font-family: var(--font-display); font-size: 1.3rem; line-height: 1.2; }
 .team-card span { opacity: .85; font-size: .92rem; }
+.credits { background: var(--hero-bg); color: #fff; border-radius: 22px; padding: 28px 20px 22px; text-align: center; margin-top: 8px; }
+.cr-tag { font-size: .72rem; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--coral); }
+.credits .people { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 0; }
+.credits .people li { background: none; border: 0; border-radius: 0; padding: 14px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; border-top: 1px solid rgba(255,255,255,.16); }
+.credits .people li:first-child { border-top: 0; }
+.credits .people b { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: #fff; }
+.credits .people span { font-size: .9rem; color: rgba(255,255,255,.72); }
+.cr-prof { margin-top: 10px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.16); }
+.cr-name { margin-top: 6px; font-family: var(--font-display); font-size: 1.5rem; color: #fff; }
+.cr-foot { margin-top: 22px; font-size: .8rem; color: rgba(255,255,255,.55); }
 .people { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .people li { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; min-width: 0; }
 .avatar { flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--blue-soft); color: var(--blue); display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; letter-spacing: .02em; }
@@ -575,10 +585,14 @@ img { max-width: 100%; }
       <button class="ghost" type="button" id="tourBtn">Rever o tour do app</button>
     </section>
 
-    <section class="block" aria-labelledby="qQuem">
-      <h2 id="qQuem">Quem fez</h2>
+    <section class="credits" aria-label="Quem fez o app">
+      <p class="cr-tag">Feito por</p>
       <ul class="people" id="people"></ul>
-      <p class="prof" style="opacity:.85"><b>Professor:</b> Lucas</p>
+      <div class="cr-prof">
+        <p class="cr-tag">Orientação</p>
+        <p class="cr-name"><b>Professor Lucas</b></p>
+      </div>
+      <p class="cr-foot">IMMC · 2026</p>
     </section>
   </div>
 </main>
@@ -774,7 +788,8 @@ img { max-width: 100%; }
   /* criadores */
   var TEAM = ['Gabriel Nascimento de Oliveira', 'Mariana Campos Borges', 'Matheus Theodoro C. A. Silva', 'Emanuelly Nogueira Hussein', 'Giovana Carvalho Bueno'];
   $('people').innerHTML = TEAM.map(function (n) {
-    return '<li><b>' + n + '</b></li>';
+    var i = n.indexOf(' ');
+    return '<li><b>' + n.slice(0, i) + '</b><span>' + n.slice(i + 1) + '</span></li>';
   }).join('');
 
   /* convite para instalar o app (só no site, nunca dentro do artefato) */
