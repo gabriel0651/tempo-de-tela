@@ -237,6 +237,15 @@ input[type=date] { -webkit-appearance: none; appearance: none; display: block; b
 
 @keyframes rise { from { opacity: .35; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .pop { animation: rise .45s ease; }
+.guide { display: flex; flex-direction: column; gap: 8px; }
+.guide details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.guide summary { list-style: none; cursor: pointer; padding: 14px 16px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.guide summary::-webkit-details-marker { display: none; }
+.guide summary::after { content: '+'; color: var(--blue); font-size: 1.3rem; font-weight: 700; line-height: 1; flex: none; }
+.guide details[open] summary::after { content: '\2212'; }
+.guide .gbody { padding: 0 16px 14px; color: var(--muted); font-size: .95rem; line-height: 1.5; display: flex; flex-direction: column; gap: 8px; }
+.guide .gbody ol, .guide .gbody ul { padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.guide .gbody b { color: var(--ink); font-weight: 600; }
 .tour-back { position: fixed; inset: 0; z-index: 70; }
 .tour-hole { position: fixed; z-index: 71; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(8, 12, 34, .74); outline: 2px solid var(--blue); pointer-events: none; transition: top .25s, left .25s, width .25s, height .25s; }
 .tour-card { position: fixed; z-index: 72; left: 50%; transform: translateX(-50%); width: min(92vw, 360px); box-sizing: border-box; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: 0 18px 40px rgba(5, 10, 40, .4); display: flex; flex-direction: column; gap: 8px; }
@@ -448,14 +457,129 @@ img { max-width: 100%; }
   </div>
 
   <div class="view" id="v-team" hidden>
-    <h2 class="view-title">Criadores</h2>
+    <h2 class="view-title">Sobre o app</h2>
     <div class="team-card">
       <img id="teamLogo" alt="Logo do IMMC" width="64" height="64">
       <div><strong>Time Control</strong><span>Projeto escolar do IMMC, 2026</span></div>
     </div>
-    <ul class="people" id="people"></ul>
-    <p class="prof" style="margin-top:16px;opacity:.85"><b>Professor:</b> Lucas</p>
-    <button class="ghost" type="button" id="tourBtn" style="margin-top:16px">Rever o tour do app</button>
+    <p class="lead">O Time Control mostra quanto da sua vida vai para a tela do celular. Você diz quantas horas usa por dia e ele calcula quanto isso vira em uma semana, um mês e até 20 anos. Também guarda um registro por semana ou mês, para você ver se o seu uso está caindo.</p>
+
+    <section class="block" aria-labelledby="qGuia">
+      <h2 id="qGuia">Guia do app</h2>
+      <div class="guide">
+        <details>
+          <summary>1. Calcular: quanto tempo eu perco</summary>
+          <div class="gbody">
+            <ol>
+              <li>Na aba <b>Calcular</b>, marque quantas horas por dia você usa o celular. Arraste a bolinha ou use os botões − e + (15 em 15 minutos).</li>
+              <li>Para saber o seu número, olhe no celular: no iPhone, Ajustes e Tempo de Uso. No Android, Configurações e Bem-estar digital. Use a média diária.</li>
+              <li>Toque em <b>Calcular e salvar</b>.</li>
+            </ol>
+          </div>
+        </details>
+        <details>
+          <summary>2. Resultados e simulação</summary>
+          <div class="gbody">
+            <ul>
+              <li><b>Em 20 anos você passa:</b> o tempo total, por exemplo 3 anos e 4 meses.</li>
+              <li><b>Barra do dia:</b> cada pedaço é 1 hora do seu dia acordado (16 horas).</li>
+              <li><b>Cartões:</b> o tempo em 1 semana, 1 mês, 1, 5, 10 e 20 anos.</li>
+              <li><b>E se você usasse menos?:</b> mexa em "Usar menos" e veja quanto tempo volta para você em 20 anos.</li>
+            </ul>
+            <p>A conta é a média diária vezes os dias do período, com ano de 365 dias e 16 horas acordado por dia. Os níveis de uso são uma referência do app, não um diagnóstico.</p>
+          </div>
+        </details>
+        <details>
+          <summary>3. Evolução: fazer um registro</summary>
+          <div class="gbody">
+            <ol>
+              <li>Na aba <b>Evolução</b>, escolha <b>Semana</b> ou <b>Mês</b>.</li>
+              <li>Confira a data. O app já sugere a de hoje.</li>
+              <li>Ajuste a média diária no controle.</li>
+              <li>Se quiser, toque em <b>Adicionar foto</b> e escolha um print do Tempo de Uso ou do Bem-estar digital.</li>
+              <li>Toque em <b>Salvar registro</b>.</li>
+            </ol>
+            <p>Registre sempre no mesmo dia da semana para a comparação ficar justa.</p>
+          </div>
+        </details>
+        <details>
+          <summary>4. Comparação, gráfico e histórico</summary>
+          <div class="gbody">
+            <ul>
+              <li><b>Comparação:</b> mostra se você melhorou, piorou ou ficou igual ao registro anterior, e quanto mudou por dia.</li>
+              <li><b>Gráfico:</b> as barras dos últimos 12 registros. A barra escura é a mais recente. Quanto mais baixa, menos tela.</li>
+              <li><b>Histórico:</b> todos os registros. Toque na foto pequena para ver maior. Para apagar, toque em <b>Apagar</b> e depois em <b>Confirmar</b>.</li>
+            </ul>
+          </div>
+        </details>
+        <details>
+          <summary>5. Lembrete semanal</summary>
+          <div class="gbody">
+            <ol>
+              <li>Depois do primeiro registro, na aba Evolução, toque em <b>Ativar lembrete semanal</b>.</li>
+              <li>Permita as notificações quando o celular perguntar.</li>
+              <li>Use <b>Testar aviso agora</b> para ver como o aviso aparece.</li>
+            </ol>
+            <p>O app avisa quando passam 7 dias sem registro. No Android, com o app instalado, o aviso pode chegar com o app fechado, mas isso não é garantido. Para ter certeza, toque em <b>Baixar para o calendário</b> (quando o botão aparecer), que cria um aviso todo domingo às 19h.</p>
+          </div>
+        </details>
+        <details>
+          <summary>6. Seus dados: copiar e levar para outro celular</summary>
+          <div class="gbody">
+            <p>Tudo fica guardado só no seu aparelho. Nada é enviado para a internet, e limpar os dados do navegador apaga os registros.</p>
+            <ol>
+              <li>Na aba Evolução, desça até <b>Seus dados</b>.</li>
+              <li>Toque em <b>Exportar dados</b> para salvar um arquivo com os registros e as fotos.</li>
+              <li>No outro celular, toque em <b>Importar dados</b> e escolha esse arquivo.</li>
+            </ol>
+          </div>
+        </details>
+        <details>
+          <summary>7. Efeitos e Dicas</summary>
+          <div class="gbody">
+            <ul>
+              <li><b>Efeitos:</b> o que o uso excessivo do celular pode causar. No fim da página estão as fontes das informações.</li>
+              <li><b>Dicas:</b> seis ideias simples para usar menos. Escolha uma ou duas, não precisa fazer todas.</li>
+            </ul>
+          </div>
+        </details>
+        <details>
+          <summary>8. Tema claro ou escuro</summary>
+          <div class="gbody">
+            <p>No canto de cima, à direita, toque no botão redondo com sol ou lua para trocar. O app lembra da sua escolha.</p>
+          </div>
+        </details>
+        <details>
+          <summary>9. Colocar na tela inicial</summary>
+          <div class="gbody">
+            <p>Assim o app abre em tela cheia, como um app de verdade.</p>
+            <ul>
+              <li><b>iPhone:</b> abra no Safari, toque nos três pontinhos (…) ou em Compartilhar, escolha <b>Adicionar à Tela de Início</b> e toque em <b>Adicionar</b>.</li>
+              <li><b>Android:</b> abra no Chrome, toque nos três pontinhos e escolha <b>Instalar app</b>. Não escolha "Adicionar atalho".</li>
+              <li><b>Computador:</b> no Chrome ou Edge, clique no ícone de instalar no fim da barra de endereços.</li>
+            </ul>
+          </div>
+        </details>
+        <details>
+          <summary>10. Dúvidas comuns</summary>
+          <div class="gbody">
+            <ul>
+              <li><b>Meus registros sumiram:</b> os dados do navegador foram limpos ou você abriu em outro aparelho. Use <b>Importar dados</b> com o arquivo de cópia.</li>
+              <li><b>O lembrete não chegou:</b> libere as notificações do app e use também o lembrete do calendário.</li>
+              <li><b>A foto não anexou:</b> tente um print em JPG ou PNG.</li>
+              <li><b>Funciona sem internet?</b> Sim, depois de aberto uma vez com internet.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+      <button class="ghost" type="button" id="tourBtn">Rever o tour do app</button>
+    </section>
+
+    <section class="block" aria-labelledby="qQuem">
+      <h2 id="qQuem">Quem fez</h2>
+      <ul class="people" id="people"></ul>
+      <p class="prof" style="opacity:.85"><b>Professor:</b> Lucas</p>
+    </section>
   </div>
 </main>
 
@@ -465,7 +589,7 @@ img { max-width: 100%; }
     <button type="button" data-go="evo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Evolução</button>
     <button type="button" data-go="eff"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-4 4 8 2-4h6"/></svg>Efeitos</button>
     <button type="button" data-go="tip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>Dicas</button>
-    <button type="button" data-go="team"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg>Criadores</button>
+    <button type="button" data-go="team"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>Sobre</button>
   </div>
 </nav>
 
@@ -1135,7 +1259,7 @@ img { max-width: 100%; }
   });
 
   /* tema claro ou escuro, escolhido pela pessoa */
-  /* tour guiado: aparece só na primeira abertura e pode ser revisto na aba Criadores */
+  /* tour guiado: aparece só na primeira abertura e pode ser revisto na aba Sobre */
   var TOURKEY = 'tempo-de-tela-tour';
   var PASSOS = [
     { t: 'Bem-vindo ao Time Control', d: 'Vamos fazer um tour rápido, de cerca de 1 minuto. Você pode pular quando quiser.' },
@@ -1143,8 +1267,8 @@ img { max-width: 100%; }
     { alvo: '#calc', t: '2. Calcule', d: 'Toque em Calcular e salvar para guardar o resultado.' },
     { alvo: '#hero', t: '3. Veja o resultado', d: 'Aqui aparece quanto tempo isso vira em 20 anos. Logo abaixo estão a semana, o mês e 1, 5 e 10 anos.' },
     { alvo: 'section[aria-labelledby="qSim"]', t: '4. E se você usasse menos?', d: 'Mexa neste controle para ver quanto tempo volta para você em 20 anos.' },
-    { alvo: '.nav-inner', t: '5. As abas de baixo', d: 'Evolução: registre toda semana e compare. Efeitos: o que o excesso causa. Dicas: ideias para usar menos. Criadores: quem fez o app.' },
-    { alvo: '#themeBtn', t: '6. Claro ou escuro', d: 'Toque aqui para trocar o tema. Para rever este tour, abra a aba Criadores.' }
+    { alvo: '.nav-inner', t: '5. As abas de baixo', d: 'Evolução: registre toda semana e compare. Efeitos: o que o excesso causa. Dicas: ideias para usar menos. Sobre: guia completo do app e quem fez.' },
+    { alvo: '#themeBtn', t: '6. Claro ou escuro', d: 'Toque aqui para trocar o tema. Para rever este tour, abra a aba Sobre.' }
   ];
   var tour = null;
   function tourFeito() { return store(TOURKEY) === '1'; }
