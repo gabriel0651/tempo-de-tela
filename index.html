@@ -269,6 +269,12 @@ img { max-width: 100%; }
   </header>
 
   <div class="view" id="v-calc">
+  <section class="input" id="instalar" hidden aria-labelledby="qInst">
+    <h2 id="qInst">Instalar o app</h2>
+    <p class="hint" id="instTxt"></p>
+    <button class="primary" type="button" id="instBtn" hidden></button>
+    <button class="linkbtn" type="button" id="instFechar">Agora não</button>
+  </section>
   <section class="input" aria-labelledby="qInput">
     <h2 id="qInput">Quanto você usa o celular por dia, em média?</h2>
     <div class="readout">
@@ -632,10 +638,55 @@ img { max-width: 100%; }
   /* criadores */
   var TEAM = ['Gabriel Nascimento de Oliveira', 'Mariana Campos Borges', 'Matheus Theodoro C. A. Silva', 'Emanuelly Nogueira Hussein', 'Giovana Carvalho Bueno'];
   $('people').innerHTML = TEAM.map(function (n) {
-    var w = n.split(' ');
-    var ini = (w[0][0] + w[w.length - 1][0]).toUpperCase();
-    return '<li><span class="avatar" aria-hidden="true">' + ini + '</span><b>' + n + '</b></li>';
+    return '<li><b>' + n + '</b></li>';
   }).join('');
+
+  /* convite para instalar o app (só no site, nunca dentro do artefato) */
+  (function () {
+    var box = $('instalar'), txt = $('instTxt'), btn = $('instBtn'), IKEY = 'tempo-de-tela-instalar-fechado';
+    var ua = navigator.userAgent || '';
+    var ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var android = /Android/.test(ua);
+    var samsung = /SamsungBrowser/.test(ua);
+    var chrome = /Chrome\//.test(ua) && !/SamsungBrowser|OPR\/|OPiOS|EdgA|Edg\/|MiuiBrowser|HeyTapBrowser|Vivaldi|DuckDuckGo|YaBrowser|UCBrowser|Firefox/.test(ua);
+    var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    if (window.claude || standalone || (!ios && !android) || store(IKEY) === '1') return;
+    var adiado = null, mostrou = false;
+    function mostrar(t, rotulo, acao) {
+      txt.textContent = t;
+      if (rotulo) { btn.textContent = rotulo; btn.hidden = false; btn.onclick = acao; } else { btn.hidden = true; btn.onclick = null; }
+      box.hidden = false; mostrou = true;
+    }
+    function copiar() {
+      var url = location.origin + location.pathname;
+      try {
+        navigator.clipboard.writeText(url).then(
+          function () { toast('Endereço copiado. Abra o Chrome e cole na barra.'); },
+          function () { toast('Copie o endereço da barra de cima e abra no Chrome.'); }
+        );
+      } catch (e) { toast('Copie o endereço da barra de cima e abra no Chrome.'); }
+    }
+    $('instFechar').addEventListener('click', function () { box.hidden = true; save(IKEY, '1'); });
+    window.addEventListener('appinstalled', function () { box.hidden = true; save(IKEY, '1'); });
+    if (ios) {
+      mostrar('No iPhone, abra este endereço no Safari, toque em Compartilhar (ou nos três pontinhos) e escolha Adicionar à Tela de Início.');
+    } else if (samsung) {
+      mostrar('O Samsung Internet pode mostrar um alerta do Android ao instalar. No Chrome o app costuma instalar sem alerta.', 'Copiar endereço para o Chrome', copiar);
+    } else if (!chrome) {
+      mostrar('Para instalar o app, abra este endereço no Chrome.', 'Copiar endereço para o Chrome', copiar);
+    } else {
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault(); adiado = e;
+        mostrar('Instale o app para abrir em tela cheia, direto da tela inicial.', 'Instalar app', function () {
+          adiado.prompt();
+          adiado.userChoice.then(function (r) { if (r && r.outcome === 'accepted') { box.hidden = true; save(IKEY, '1'); } adiado = null; }, function () {});
+        });
+      });
+      setTimeout(function () {
+        if (!mostrou) mostrar('Para instalar, toque nos três pontinhos do Chrome e escolha Instalar app.');
+      }, 3500);
+    }
+  })();
 
   /* ---------- evolução ---------- */
   var EKEY = 'tempo-de-tela-evolucao';
@@ -863,30 +914,50 @@ img { max-width: 100%; }
   function canNotify() { return 'Notification' in window && Notification.permission === 'granted'; }
   /* No Android o navegador não aceita new Notification(): precisa passar pelo service worker */
   function mostrarNotificacao(titulo, corpo) {
-    var opcoes = { body: corpo, icon: 'icon-192.png', tag: 'time-control-lembrete' };
+    var opcoes = { body: corpo, icon: 'icon-192.png', badge: 'icon-192.png', tag: 'time-control-lembrete' };
     if ('serviceWorker' in navigator && navigator.serviceWorker.getRegistration) {
-      return navigator.serviceWorker.getRegistration().then(function (reg) {
+      return navigator.serviceWorker.getRegistration().then(function (r) {
+        if (!r) return null;
+        return Promise.race([navigator.serviceWorker.ready, new Promise(function (ok) { setTimeout(function () { ok(null); }, 4000); })]);
+      }).then(function (reg) {
         if (reg && reg.showNotification) return reg.showNotification(titulo, opcoes);
         new Notification(titulo, { body: corpo });
       });
     }
     return new Promise(function (ok) { new Notification(titulo, { body: corpo }); ok(); });
   }
+  /* guarda o estado do lembrete para o service worker conseguir avisar com o app fechado (o Android decide quando) */
+  function guardarEstadoParaSw() {
+    if (!('caches' in window) || !('serviceWorker' in navigator)) return;
+    var arr = sorted();
+    var estado = { ativo: remOn(), ultimo: arr.length ? arr[arr.length - 1].d : null, avisado: store(AKEY) };
+    try {
+      caches.open('time-control-estado').then(function (c) {
+        return c.put('estado-lembrete', new Response(JSON.stringify(estado), { headers: { 'Content-Type': 'application/json' } }));
+      }).catch(function () {});
+      if (estado.ativo && canNotify()) {
+        navigator.serviceWorker.ready.then(function (reg) {
+          if (reg.periodicSync && reg.periodicSync.register) return reg.periodicSync.register('time-control-lembrete', { minInterval: 12 * 60 * 60 * 1000 });
+        }).catch(function () {});
+      }
+    } catch (e) {}
+  }
   function avisar(msg) {
     if (!canNotify() || store(AKEY) === todayStr()) return;
-    mostrarNotificacao('Time Control', msg).then(function () { save(AKEY, todayStr()); }, function () {});
+    mostrarNotificacao('Time Control', msg).then(function () { save(AKEY, todayStr()); guardarEstadoParaSw(); }, function () {});
   }
   function msgAtraso(dias) {
     return 'Faz ' + dias + ' ' + pl(dias, 'dia', 'dias') + ' desde o seu último registro. Hora de registrar a média da semana.';
   }
   function renderRem() {
+    guardarEstadoParaSw();
     var arr = sorted(), n = arr.length, box = $('evRem');
     $('evRemBlock').hidden = n === 0;
     if (!n) return;
     var on = remOn(), dias = diasDesde(arr[n - 1].d), txt, btn;
     if (!on) {
       txt = '<p class="cmp-big">Quer ser lembrado toda semana?</p>' +
-        '<p class="hint">Aviso quando passar de 7 dias sem registro. Se o navegador permitir, o aviso chega como notificação.</p>';
+        '<p class="hint">Aviso quando passar de 7 dias sem registro. Com o app instalado no Android, o aviso pode chegar com o app fechado, mas o Android escolhe a hora e não é garantido. Para ter certeza, use também o lembrete do calendário.</p>';
       btn = '<button type="button" class="primary" data-rem="on">Ativar lembrete semanal</button>' +
         (window.claude ? '' : '<button type="button" class="ghost" data-rem="ics">Baixar para o calendário</button>');
     } else {
@@ -903,13 +974,17 @@ img { max-width: 100%; }
     if (on && dias >= 7) avisar(msgAtraso(dias));
   }
   function testarAviso() {
-    if (canNotify()) {
+    if (!('Notification' in window)) {
+      toast('Este navegador não mostra notificações. Use o lembrete do calendário.');
+    } else if (Notification.permission === 'granted') {
       mostrarNotificacao('Time Control', 'Teste: é assim que o lembrete vai aparecer.').then(
         function () { toast('Aviso de teste enviado.'); },
-        function () { toast('Não consegui mostrar o aviso neste navegador.'); }
+        function () { toast('Não consegui mostrar o aviso. Use o lembrete do calendário.'); }
       );
+    } else if (Notification.permission === 'denied') {
+      toast('Notificações bloqueadas. No Android, abra as informações do app (ou do Chrome, em Configurações do site) e libere as notificações.');
     } else {
-      toast('Notificações bloqueadas. Libere nas configurações do navegador e tente de novo.');
+      toast('Toque em Permitir quando o celular perguntar sobre notificações.');
     }
     renderRem();
   }

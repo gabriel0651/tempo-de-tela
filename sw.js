@@ -1,4 +1,4 @@
-const VERSAO = 'time-control-v2';
+const VERSAO = 'time-control-v3';
 const ARQUIVOS = ['./', 'index.html', 'logo.png', 'icon-192.png', 'icon-512.png', 'manifest.json'];
 
 self.addEventListener('install', function (e) {
@@ -8,7 +8,7 @@ self.addEventListener('install', function (e) {
 self.addEventListener('activate', function (e) {
   e.waitUntil(
     caches.keys().then(function (nomes) {
-      return Promise.all(nomes.filter(function (n) { return n !== VERSAO; }).map(function (n) { return caches.delete(n); }));
+      return Promise.all(nomes.filter(function (n) { return n !== VERSAO && n !== 'time-control-estado'; }).map(function (n) { return caches.delete(n); }));
     }).then(function () { return self.clients.claim(); })
   );
 });
@@ -46,4 +46,29 @@ self.addEventListener('notificationclick', function (e) {
       return self.clients.openWindow('./');
     })
   );
+});
+
+function hoje() {
+  var n = new Date();
+  return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+}
+function verificarLembrete() {
+  return caches.open('time-control-estado').then(function (c) {
+    return c.match('estado-lembrete').then(function (r) { return r ? r.json() : null; }).then(function (s) {
+      if (!s || !s.ativo || !s.ultimo || s.avisado === hoje()) return;
+      var p = s.ultimo.split('-'), n = new Date();
+      var dias = Math.round((new Date(n.getFullYear(), n.getMonth(), n.getDate()) - new Date(+p[0], +p[1] - 1, +p[2])) / 86400000);
+      if (dias < 7) return;
+      return self.registration.showNotification('Time Control', {
+        body: 'Faz ' + dias + ' dias desde o seu último registro. Hora de registrar a média da semana.',
+        icon: 'icon-192.png', badge: 'icon-192.png', tag: 'time-control-lembrete'
+      }).then(function () {
+        s.avisado = hoje();
+        return c.put('estado-lembrete', new Response(JSON.stringify(s), { headers: { 'Content-Type': 'application/json' } }));
+      });
+    });
+  });
+}
+self.addEventListener('periodicsync', function (e) {
+  if (e.tag === 'time-control-lembrete') e.waitUntil(verificarLembrete());
 });
