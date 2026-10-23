@@ -1,4 +1,4 @@
-const VERSAO = 'time-control-v1';
+const VERSAO = 'time-control-v2';
 const ARQUIVOS = ['./', 'index.html', 'logo.png', 'icon-192.png', 'icon-512.png', 'manifest.json'];
 
 self.addEventListener('install', function (e) {
