@@ -237,6 +237,17 @@ input[type=date] { -webkit-appearance: none; appearance: none; display: block; b
 
 @keyframes rise { from { opacity: .35; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .pop { animation: rise .45s ease; }
+.tour-back { position: fixed; inset: 0; z-index: 70; }
+.tour-hole { position: fixed; z-index: 71; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(8, 12, 34, .74); outline: 2px solid var(--blue); pointer-events: none; transition: top .25s, left .25s, width .25s, height .25s; }
+.tour-card { position: fixed; z-index: 72; left: 50%; transform: translateX(-50%); width: min(92vw, 360px); box-sizing: border-box; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: 0 18px 40px rgba(5, 10, 40, .4); display: flex; flex-direction: column; gap: 8px; }
+.tour-card h3 { font-family: var(--font-display); font-size: 1.15rem; line-height: 1.25; }
+.tour-card p { color: var(--muted); font-size: .98rem; line-height: 1.45; }
+.tour-count { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.tour-actions { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.tour-actions .sp { flex: 1; }
+.tour-btn { border: 1px solid var(--line); background: var(--surface); color: var(--blue); border-radius: 12px; padding: 10px 14px; font-weight: 700; font-size: .95rem; cursor: pointer; font-family: inherit; }
+.tour-btn.main { border: 0; background: var(--btn-bg); color: var(--btn-fg); }
+.tour-skip { border: 0; background: transparent; color: var(--muted); font-weight: 600; font-size: .9rem; cursor: pointer; padding: 10px 4px; font-family: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .pop { animation: none; }
   .splash { transition: none; }
@@ -444,6 +455,7 @@ img { max-width: 100%; }
     </div>
     <ul class="people" id="people"></ul>
     <p class="prof" style="margin-top:16px;opacity:.85"><b>Professor:</b> Lucas</p>
+    <button class="ghost" type="button" id="tourBtn" style="margin-top:16px">Rever o tour do app</button>
   </div>
 </main>
 
@@ -1123,6 +1135,96 @@ img { max-width: 100%; }
   });
 
   /* tema claro ou escuro, escolhido pela pessoa */
+  /* tour guiado: aparece só na primeira abertura e pode ser revisto na aba Criadores */
+  var TOURKEY = 'tempo-de-tela-tour';
+  var PASSOS = [
+    { t: 'Bem-vindo ao Time Control', d: 'Vamos fazer um tour rápido, de cerca de 1 minuto. Você pode pular quando quiser.' },
+    { alvo: '.slider-row', t: '1. Diga quanto você usa', d: 'Arraste a bolinha ou use os botões − e + para marcar quantas horas por dia você usa o celular.' },
+    { alvo: '#calc', t: '2. Calcule', d: 'Toque em Calcular e salvar para guardar o resultado.' },
+    { alvo: '#hero', t: '3. Veja o resultado', d: 'Aqui aparece quanto tempo isso vira em 20 anos. Logo abaixo estão a semana, o mês e 1, 5 e 10 anos.' },
+    { alvo: 'section[aria-labelledby="qSim"]', t: '4. E se você usasse menos?', d: 'Mexa neste controle para ver quanto tempo volta para você em 20 anos.' },
+    { alvo: '.nav-inner', t: '5. As abas de baixo', d: 'Evolução: registre toda semana e compare. Efeitos: o que o excesso causa. Dicas: ideias para usar menos. Criadores: quem fez o app.' },
+    { alvo: '#themeBtn', t: '6. Claro ou escuro', d: 'Toque aqui para trocar o tema. Para rever este tour, abra a aba Criadores.' }
+  ];
+  var tour = null;
+  function tourFeito() { return store(TOURKEY) === '1'; }
+  function fecharTour() {
+    if (!tour) return;
+    document.removeEventListener('keydown', tour.onKey);
+    window.removeEventListener('resize', tour.onPos);
+    window.removeEventListener('scroll', tour.onPos, true);
+    tour.nodes.forEach(function (n) { n.remove(); });
+    var foco = tour.foco;
+    tour = null;
+    save(TOURKEY, '1');
+    try { window.scrollTo(0, 0); if (foco && foco.focus) foco.focus({ preventScroll: true }); } catch (e) {}
+  }
+  function iniciarTour() {
+    if (tour) return;
+    go('calc');
+    var back = document.createElement('div'); back.className = 'tour-back';
+    var hole = document.createElement('div'); hole.className = 'tour-hole';
+    var card = document.createElement('div'); card.className = 'tour-card';
+    card.setAttribute('role', 'dialog'); card.setAttribute('aria-modal', 'true'); card.setAttribute('aria-labelledby', 'tourT');
+    document.body.appendChild(back); document.body.appendChild(hole); document.body.appendChild(card);
+    var i = 0;
+    tour = { nodes: [back, hole, card], foco: document.activeElement };
+    function alvoEl(p) { return p.alvo ? document.querySelector(p.alvo) : null; }
+    function posicionar() {
+      var p = PASSOS[i], el = alvoEl(p), vw = window.innerWidth, vh = window.innerHeight, pad = 6;
+      if (el) {
+        var r = el.getBoundingClientRect();
+        var top = Math.max(r.top - pad, 4), bottom = Math.min(r.bottom + pad, vh - 4);
+        hole.style.cssText = 'top:' + top + 'px;left:' + Math.max(r.left - pad, 4) + 'px;width:' + Math.min(r.width + pad * 2, vw - 8) + 'px;height:' + Math.max(bottom - top, 0) + 'px';
+        var th = card.offsetHeight, y;
+        if (vh - bottom >= th + 16) y = bottom + 12;
+        else if (top >= th + 16) y = top - th - 12;
+        else y = 12;
+        card.style.top = y + 'px';
+      } else {
+        hole.style.cssText = 'top:50%;left:50%;width:0;height:0;outline-width:0';
+        card.style.top = Math.max((vh - card.offsetHeight) / 2, 12) + 'px';
+      }
+    }
+    function mostrar() {
+      var p = PASSOS[i], ultimo = i === PASSOS.length - 1;
+      card.innerHTML = '<span class="tour-count">Passo ' + (i + 1) + ' de ' + PASSOS.length + '</span>' +
+        '<h3 id="tourT">' + p.t + '</h3><p>' + p.d + '</p>' +
+        '<div class="tour-actions">' + (ultimo ? '' : '<button type="button" class="tour-skip" data-t="pular">Pular tour</button>') +
+        '<span class="sp"></span>' + (i > 0 ? '<button type="button" class="tour-btn" data-t="voltar">Voltar</button>' : '') +
+        '<button type="button" class="tour-btn main" data-t="prox">' + (ultimo ? 'Concluir' : 'Próximo') + '</button></div>';
+      var el = alvoEl(p);
+      if (el) { try { el.scrollIntoView({ block: 'center', behavior: 'auto' }); } catch (e) {} }
+      posicionar();
+      try { card.querySelector('[data-t=prox]').focus({ preventScroll: true }); } catch (e) {}
+    }
+    card.addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-t]');
+      if (!b) return;
+      var a = b.getAttribute('data-t');
+      if (a === 'pular') fecharTour();
+      else if (a === 'voltar') { i = Math.max(i - 1, 0); mostrar(); }
+      else if (i >= PASSOS.length - 1) fecharTour();
+      else { i++; mostrar(); }
+    });
+    tour.onKey = function (e) {
+      if (e.key === 'Escape') { fecharTour(); return; }
+      if (e.key !== 'Tab') return;
+      var bs = card.querySelectorAll('button');
+      if (!bs.length) return;
+      var primeiro = bs[0], ultimoB = bs[bs.length - 1];
+      if (!card.contains(document.activeElement)) { e.preventDefault(); primeiro.focus(); }
+      else if (e.shiftKey && document.activeElement === primeiro) { e.preventDefault(); ultimoB.focus(); }
+      else if (!e.shiftKey && document.activeElement === ultimoB) { e.preventDefault(); primeiro.focus(); }
+    };
+    tour.onPos = function () { posicionar(); };
+    document.addEventListener('keydown', tour.onKey);
+    window.addEventListener('resize', tour.onPos);
+    window.addEventListener('scroll', tour.onPos, true);
+    mostrar();
+  }
+  $('tourBtn').addEventListener('click', iniciarTour);
+
   var TKEY = 'tempo-de-tela-tema', root = document.documentElement, themeBtn = $('themeBtn');
   var darkMQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
   var SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
@@ -1162,7 +1264,7 @@ img { max-width: 100%; }
   setTimeout(function () {
     splash.classList.add('out');
     app.inert = false;
-    setTimeout(function () { splash.hidden = true; }, reduce ? 0 : 480);
+    setTimeout(function () { splash.hidden = true; if (!tourFeito()) setTimeout(iniciarTour, 400); }, reduce ? 0 : 480);
   }, dur);
 })();
 </script>
