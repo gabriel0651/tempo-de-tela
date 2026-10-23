@@ -1,4 +1,4 @@
-const VERSAO = 'time-control-v3';
+const VERSAO = 'time-control-v4';
 const ARQUIVOS = ['./', 'index.html', 'logo.png', 'icon-192.png', 'icon-512.png', 'manifest.json'];
 
 self.addEventListener('install', function (e) {
@@ -17,6 +17,9 @@ self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   if (req.mode === 'navigate') {
+    // outras páginas do site (como /pesquisa) não entram no cache do app
+    var caminho = new URL(req.url).pathname;
+    if (caminho !== '/' && caminho !== '/index.html') return;
     // páginas: tenta a rede primeiro (pega versão nova) e usa o guardado se estiver sem internet
     e.respondWith(
       fetch(req).then(function (r) {
